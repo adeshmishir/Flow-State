@@ -1,37 +1,87 @@
 import { z } from 'zod'
 
+import { SESSION_DURATIONS, type SessionDraft } from '@/types/session'
+
 /**
- * Shape of the "start a session" form.
+ * Shape of the session setup form.
  *
- * The schema is the single source of truth: the input constraints, the
- * validation messages and the inferred TypeScript type all come from it, so a
- * change here cannot drift from the form.
+ * Deliberately two fields: *which task* and *how long*. Everything else about a
+ * session is either already known (the project, from the task) or does not
+ * change what happens next. A setup step that asks more than this starts to
+ * feel like paperwork, which is the opposite of the point.
  */
-export const sessionFormSchema = z.object({
-  task: z
-    .string()
-    .trim()
-    .min(3, 'Name the task in a few words.')
-    .max(120, 'Keep it under 120 characters.'),
+export const sessionSetupSchema = z.object({
+  taskId: z.string().trim().min(1, 'Pick a task, or write a new one.'),
   length: z.enum(['25', '50', '90']),
 })
 
-export type SessionFormValues = z.infer<typeof sessionFormSchema>
+export type SessionSetupValues = z.infer<typeof sessionSetupSchema>
 
 export const SESSION_LENGTH_OPTIONS: readonly {
-  value: SessionFormValues['length']
+  value: SessionSetupValues['length']
   label: string
   hint: string
 }[] = [
-  { value: '25', label: '25 min', hint: 'A short sprint, good for one narrow thing.' },
-  { value: '50', label: '50 min', hint: 'One full block — the default shape of a session.' },
+  { value: '25', label: '25 min', hint: 'A short sprint — good for one narrow thing.' },
+  { value: '50', label: '50 min', hint: 'One full block. The default shape of a session.' },
   { value: '90', label: '90 min', hint: 'A long haul. Only when the task is genuinely deep.' },
 ]
 
-export const DEFAULT_SESSION_LENGTH: SessionFormValues['length'] = '50'
+export const DEFAULT_SESSION_LENGTH: SessionSetupValues['length'] = '50'
 
-/** Maps a planned duration in minutes onto the closest offered option. */
-export function toSessionLength(minutes: number): SessionFormValues['length'] {
-  const match = SESSION_LENGTH_OPTIONS.find((option) => Number(option.value) === minutes)
-  return match?.value ?? DEFAULT_SESSION_LENGTH
+/**
+ * Snaps an estimate in minutes onto the closest offered length.
+ *
+ * A task estimated at 40 minutes should open the dialog on 50, not silently on
+ * the 25 — the estimate is a hint, and the nearest option is the honest reading
+ * of it.
+ */
+export function toSessionLength(minutes: number | null | undefined): SessionSetupValues['length'] {
+  const defaultLength = DEFAULT_SESSION_LENGTH
+  if (typeof minutes !== 'number' || !Number.isFinite(minutes) || minutes <= 0) {
+    return defaultLength
+  }
+
+  let nearest: SessionSetupValues['length'] = defaultLength
+  let smallestGap = Number.POSITIVE_INFINITY
+
+  for (const option of SESSION_LENGTH_OPTIONS) {
+    const gap = Math.abs(Number(option.value) - minutes)
+    if (gap < smallestGap) {
+      nearest = option.value
+      smallestGap = gap
+    }
+  }
+
+  return nearest
+}
+
+export function toDraftMinutes(length: SessionSetupValues['length']): number {
+  const parsed = Number(length)
+  return SESSION_DURATIONS.includes(parsed as (typeof SESSION_DURATIONS)[number])
+    ? parsed
+    : Number(DEFAULT_SESSION_LENGTH)
+}
+
+/** Narrows an unvalidated minutes value from the URL back to a real duration. */
+export function sanitizeDraftMinutes(value: number): number | null {
+  return SESSION_DURATIONS.includes(value as (typeof SESSION_DURATIONS)[number]) ? value : null
+}
+
+export function toDraft(
+  values: SessionSetupValues,
+  task: {
+    title: string
+    project: string
+    description: string | null
+    id: string
+  },
+): SessionDraft {
+  return {
+    taskId: task.id,
+    taskTitle: task.title,
+    project: task.project,
+    description: task.description ?? '',
+    minutes: toDraftMinutes(values.length),
+  }
 }

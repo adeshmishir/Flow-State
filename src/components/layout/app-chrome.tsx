@@ -14,7 +14,10 @@ import { mobileNavItems, primaryNavItems } from '@/data/navigation'
  */
 function AppTopbar() {
   return (
-    <header className="top-0 lg:hidden sticky z-30 border-b border-line bg-canvas">
+    <header
+      data-chrome="topbar"
+      className="top-0 lg:hidden sticky z-30 border-b border-line bg-canvas"
+    >
       <div className="h-14 gap-3 px-5 md:h-16 md:px-7 flex items-center">
         <Logo />
 
@@ -41,6 +44,7 @@ function AppTopbar() {
 function MobileTabBar() {
   return (
     <nav
+      data-chrome="tabbar"
       aria-label="Sections"
       className="inset-x-0 bottom-0 md:hidden fixed z-30 border-t border-line bg-canvas pb-[env(safe-area-inset-bottom)]"
     >

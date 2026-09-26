@@ -1,50 +1,49 @@
 import type { Metadata } from 'next'
 
-import { RoutePlaceholder } from '@/components/layout/route-placeholder'
-import { Eyebrow } from '@/components/ui/eyebrow'
-import { Surface } from '@/components/ui/surface'
-import { formatDuration } from '@/lib/format'
+import { FocusWorkspace } from '@/features/focus/focus-workspace'
+import { sanitizeDraftMinutes } from '@/features/session/session-form-schema'
 import { type SearchParams, firstStringParam } from '@/lib/search-params'
+import type { SessionDraft } from '@/types/session'
 
 export const metadata: Metadata = {
   title: 'Focus',
-  description: 'A single room for a single task.',
+  description: 'One room, one task, one block of time.',
 }
+
+/**
+ * The focus route.
+ *
+ * Almost nothing happens here. The draft arrives in the URL — written by the
+ * setup dialog — and is validated and normalised on the server, so the room's
+ * heading, project and plan are all in the first HTML response. Everything with
+ * a clock in it is a client leaf underneath.
+ *
+ * `searchParams` makes this route dynamic, which is correct: there is no such
+ * thing as a cached focus room.
+ */
 
 type FocusPageProps = {
   searchParams: Promise<SearchParams>
 }
 
-export default async function FocusPage({ searchParams }: FocusPageProps) {
-  const params = await searchParams
-  const task = firstStringParam(params.task)
-  const minutes = Number(firstStringParam(params.minutes))
+function readDraft(params: SearchParams): SessionDraft | null {
+  const title = firstStringParam(params.task)?.trim() ?? ''
+  if (title === '') return null
 
-  return (
-    <RoutePlaceholder
-      eyebrow="Focus"
-      title="One room, one task."
-      description="Everything that is not this task is out of the room. No inbox, no feed, no second monitor."
-      stage="Stage 2"
-      planned={[
-        'A session clock you can read at a glance',
-        'A locked-in task with the rest of the list hidden',
-        'Gentle cues to step away and come back',
-        'An interruption log, written by you, not guessed at',
-        'A calm end-of-session review',
-      ]}
-    >
-      {task ? (
-        <Surface className="p-6 sm:p-8">
-          <Eyebrow>Draft handed over from Home</Eyebrow>
-          <p className="mt-4 font-medium tracking-tight sm:text-2xl text-xl text-ink">{task}</p>
-          <p className="mt-2 text-sm text-ink-muted">
-            {Number.isFinite(minutes) && minutes > 0
-              ? `${formatDuration(minutes)} planned. The room itself is still to come.`
-              : 'The room itself is still to come.'}
-          </p>
-        </Surface>
-      ) : null}
-    </RoutePlaceholder>
-  )
+  const minutes = sanitizeDraftMinutes(Number(firstStringParam(params.minutes)))
+
+  return {
+    taskId: firstStringParam(params.id),
+    taskTitle: title.slice(0, 120),
+    // A hand-edited URL should not be able to inject an unbounded project label.
+    project: (firstStringParam(params.project) ?? '').trim().slice(0, 40),
+    description: '',
+    minutes: minutes ?? 50,
+  }
+}
+
+export default async function FocusPage({ searchParams }: FocusPageProps) {
+  const draft = readDraft(await searchParams)
+
+  return <FocusWorkspace draft={draft} />
 }

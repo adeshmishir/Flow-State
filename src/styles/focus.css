@@ -1,0 +1,118 @@
+/**
+ * Flowstate — focus room
+ * ---------------------------------------------------------------------------
+ * The one place in the product where the interface is allowed to change shape.
+ *
+ * Everything here is CSS rather than Motion, for three reasons: the transition
+ * has to be interruptible (a user can pause mid-slide), it must not re-render
+ * anything to keep running, and `prefers-reduced-motion` can switch it off
+ * completely without asking a single component to check.
+ *
+ * The rule is one attribute. `data-focus-room` is set on the app shell root
+ * while a session is live; everything below is a consequence of that.
+ */
+
+@layer base {
+  /*
+   * App chrome. The bars leave rather than fade — sliding them out of the
+   * viewport is a clearer signal than dissolving them, and it reclaims the
+   * pixels they were covering.
+   */
+  [data-chrome='topbar'],
+  [data-chrome='tabbar'] {
+    transition:
+      opacity 380ms cubic-bezier(0.2, 0, 0, 1),
+      transform 380ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  [data-chrome='topbar'] {
+    transform: translateY(0);
+  }
+
+  [data-focus-room='true'] [data-chrome='topbar'] {
+    opacity: 0;
+    transform: translateY(-100%);
+    pointer-events: none;
+    /* Out of flow, so the room gets the full viewport rather than a viewport
+       minus a bar that is no longer there. Happens on the same frame the room
+       animates in, so the two read as one movement. */
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+  }
+
+  [data-focus-room='true'] [data-chrome='tabbar'] {
+    opacity: 0;
+    transform: translateY(100%);
+    pointer-events: none;
+  }
+
+  /*
+   * The room takes the whole viewport: no page gutter, no page max-width, no
+   * bottom inset left over from a tab bar that is no longer there. The room
+   * supplies its own measure, so nothing stretches across a wide display.
+   */
+  [data-focus-room='true'] main {
+    max-width: none;
+    padding: 0;
+  }
+}
+
+/**
+ * The room's light. A single wide, soft source behind the dial — no second
+ * surface, no border, no vignette, no glow. It exists so the canvas reads as
+ * lit rather than flat, and it is weak enough that you only notice it by its
+ * absence elsewhere.
+ */
+.focus-backdrop {
+  background: radial-gradient(
+    68% 52% at 50% 42%,
+    color-mix(in oklch, var(--accent) 7%, transparent) 0%,
+    transparent 72%
+  );
+}
+
+.dark .focus-backdrop {
+  background: radial-gradient(
+    68% 52% at 50% 42%,
+    color-mix(in oklch, var(--accent) 11%, transparent) 0%,
+    transparent 72%
+  );
+}
+
+/**
+ * A slow breath on the state dot while a session runs. This is the only looping
+ * animation in the product, and it is gated behind an explicit "no reduced
+ * motion" query rather than trusting JavaScript to check.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .focus-breath {
+    animation: focus-breath 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+}
+
+@keyframes focus-breath {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+/* Reduced motion: the chrome still leaves, it just stops travelling. */
+@media (prefers-reduced-motion: reduce) {
+  [data-chrome='topbar'],
+  [data-chrome='tabbar'] {
+    transition: opacity 120ms linear;
+    transform: none;
+  }
+
+  .focus-backdrop {
+    background: none;
+  }
+}

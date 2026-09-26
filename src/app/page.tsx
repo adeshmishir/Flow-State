@@ -8,6 +8,7 @@ import {
   mockQueuedTask,
   mockTodayProgress,
   mockUser,
+  queuedTaskId,
 } from '@/data/session-fixtures'
 import { NextBlock } from '@/features/home/next-block'
 import { RecentActivity } from '@/features/home/recent-activity'
@@ -46,7 +47,7 @@ export default function HomePage() {
       </PageSection>
 
       <PageSection>
-        <NextBlock task={mockQueuedTask} />
+        <NextBlock task={mockQueuedTask} taskId={queuedTaskId} />
       </PageSection>
 
       <PageSection className="gap-10 lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-x-14 xl:gap-x-20 grid">

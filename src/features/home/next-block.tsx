@@ -9,6 +9,8 @@ import type { QueuedTask } from '@/types/session'
 
 type NextBlockProps = {
   task: QueuedTask
+  /** Stable id of `task`, so the setup dialog can preselect it. */
+  taskId: string
 }
 
 /**
@@ -16,7 +18,7 @@ type NextBlockProps = {
  * action that starts it. Rendered on the server — only the controls below the
  * hairline hydrate.
  */
-function NextBlock({ task }: NextBlockProps) {
+function NextBlock({ task, taskId }: NextBlockProps) {
   return (
     <Surface className="overflow-hidden">
       <div className="p-6 sm:p-8">
@@ -49,7 +51,7 @@ function NextBlock({ task }: NextBlockProps) {
       </div>
 
       <div className="gap-2 px-6 py-4 sm:px-8 flex items-center border-t border-line">
-        <StartSessionControls task={task} />
+        <StartSessionControls taskId={taskId} />
       </div>
     </Surface>
   )

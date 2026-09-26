@@ -14,6 +14,12 @@ import { cn } from '@/lib/utils'
 type AppSidebarProps = {
   collapsed: boolean
   onToggleCollapsed: () => void
+  /**
+   * True while a session is live. The rail is pinned to its icon form and the
+   * toggle is hidden — offering an expand button that cannot do anything would
+   * be a lie told with pixels.
+   */
+  locked?: boolean
 }
 
 /**
@@ -23,10 +29,11 @@ type AppSidebarProps = {
  * transition rather than a layout animation: it follows an explicit user
  * choice, and a spring here would feel like the UI is showing off.
  */
-function AppSidebar({ collapsed, onToggleCollapsed }: AppSidebarProps) {
+function AppSidebar({ collapsed, onToggleCollapsed, locked = false }: AppSidebarProps) {
   return (
     <aside
       data-collapsed={collapsed || undefined}
+      data-chrome="rail"
       className={cn(
         'inset-y-0 left-0 w-60 lg:flex fixed z-30 hidden flex-col border-r border-line bg-canvas',
         'transition-[width] duration-200 ease-standard',
@@ -35,7 +42,7 @@ function AppSidebar({ collapsed, onToggleCollapsed }: AppSidebarProps) {
     >
       <div className="h-16 px-4 flex shrink-0 items-center">
         <Logo className={collapsed ? 'mx-auto' : ''} markOnly={collapsed} />
-        {collapsed ? null : (
+        {collapsed || locked ? null : (
           <Tooltip label="Collapse sidebar" side="bottom">
             <IconButton
               label="Collapse sidebar"
@@ -80,16 +87,18 @@ function AppSidebar({ collapsed, onToggleCollapsed }: AppSidebarProps) {
               <UserMenu variant="compact" />
             </li>
             <li>
-              <Tooltip label="Expand sidebar" side="right">
-                <IconButton
-                  label="Expand sidebar"
-                  size="icon-sm"
-                  onClick={onToggleCollapsed}
-                  className="text-ink-subtle"
-                >
-                  <PanelLeftOpen aria-hidden="true" />
-                </IconButton>
-              </Tooltip>
+              {locked ? null : (
+                <Tooltip label="Expand sidebar" side="right">
+                  <IconButton
+                    label="Expand sidebar"
+                    size="icon-sm"
+                    onClick={onToggleCollapsed}
+                    className="text-ink-subtle"
+                  >
+                    <PanelLeftOpen aria-hidden="true" />
+                  </IconButton>
+                </Tooltip>
+              )}
             </li>
           </ul>
         ) : (

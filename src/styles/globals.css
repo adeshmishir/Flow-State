@@ -13,6 +13,7 @@
 @import './tokens.css';
 @import './theme.css';
 @import './base.css';
+@import './focus.css';
 
 @custom-variant dark (&:is(.dark *));
 

@@ -1,4 +1,4 @@
-import type { FocusSession, QueuedTask, TodayProgress } from '@/types/session'
+import type { FocusSession, QueuedTask, Task, TodayProgress } from '@/types/session'
 import type { UserProfile } from '@/types/user'
 
 /**
@@ -28,12 +28,75 @@ export const mockUser: UserProfile = {
   timeZone: 'Europe/Lisbon',
 }
 
-/** The task waiting in the wings. Stage 2 turns this into a real queue. */
+/**
+ * The task waiting in the wings. Doubles as the seed for the first entry in the
+ * task queue, so the setup dialog is never empty on a first visit.
+ */
 export const mockQueuedTask: QueuedTask = {
   title: 'Write the ingest migration guide',
   project: 'Platform docs',
-  plannedMinutes: 50,
   reason: 'Unblocked by the pipeline review you finished this afternoon',
+  plannedMinutes: 50,
+}
+
+/**
+ * Id of the task the Home page is describing.
+ *
+ * Exported as a plain string so the server page can hand it to the client setup
+ * dialog as a prop. The dialog reads the task queue from local storage, and this
+ * is how the two agree on which task "Start a session" means without the server
+ * having to know anything about client state.
+ */
+export const queuedTaskId = 'tsk_ingest_guide'
+
+/**
+ * The starting task queue.
+ *
+ * A function, not a constant, for the same reason as the session fixtures: the
+ * relative ordering has to follow the caller's clock, and this module is
+ * imported by server routes that must never serve a stale "today".
+ */
+export function getInitialTasks(now: Date = new Date()): Task[] {
+  const base = now.getTime()
+
+  return [
+    {
+      id: queuedTaskId,
+      title: 'Write the ingest migration guide',
+      description: 'Cover the backfill order, the dual-write window, and the rollback path.',
+      estimatedMinutes: 50,
+      project: 'Platform docs',
+      status: 'queued',
+      createdAt: base - 86_400_000,
+    },
+    {
+      id: 'tsk_auth_flow',
+      title: 'Sketch the authentication flow',
+      description: null,
+      estimatedMinutes: 25,
+      project: 'Platform',
+      status: 'queued',
+      createdAt: base - 172_800_000,
+    },
+    {
+      id: 'tsk_billing_retry',
+      title: 'Rewrite the billing retry logic',
+      description: 'Exponential backoff, plus a dead-letter queue for exhausted retries.',
+      estimatedMinutes: 90,
+      project: 'Billing',
+      status: 'queued',
+      createdAt: base - 259_200_000,
+    },
+    {
+      id: 'tsk_onboarding_copy',
+      title: 'Rework the onboarding flow copy',
+      description: null,
+      estimatedMinutes: 45,
+      project: 'Growth',
+      status: 'queued',
+      createdAt: base - 345_600_000,
+    },
+  ]
 }
 
 export const mockTodayProgress: TodayProgress = {
