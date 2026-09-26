@@ -122,3 +122,22 @@
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/**
+ * Hides a scrollbar without hiding the scroll.
+ *
+ * For rows that are genuinely scrollable but do not need a visible track — the
+ * inline navigation at tablet width, for instance. Removing `overflow` instead
+ * would make the extra destinations unreachable, which is worse than a scrollbar
+ * that is merely absent.
+ *
+ * WebKit only: Firefox has no supported way to do this, and the fallback there is
+ * a visible scrollbar, which is a perfectly good outcome.
+ */
+@utility hide-scrollbar {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

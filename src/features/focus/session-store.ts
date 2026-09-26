@@ -2,7 +2,14 @@
 
 import { useSyncExternalStore } from 'react'
 
-import { createExternalStore, readLocal, removeLocal, writeLocal } from '@/lib/local-store'
+import {
+  MIGRATIONS,
+  VERSIONS,
+  activeSessionSchema,
+  sessionLogSchema,
+} from '@/features/persistence/persisted-schemas'
+import { createExternalStore } from '@/lib/local-store'
+import { STORAGE_KEYS, readPersisted, removePersisted, writePersisted } from '@/lib/persistence'
 import { startClock, subscribeToClock } from '@/lib/ticker'
 import type {
   ActiveSession,
@@ -46,17 +53,19 @@ import type {
  * cannot drive the session into an impossible state.
  */
 
-const SESSION_KEY = 'flowstate.session.v1'
-const LOG_KEY = 'flowstate.session-log.v1'
+const SESSION_KEY = STORAGE_KEYS.session
+const LOG_KEY = STORAGE_KEYS.sessionLog
 
 const MINUTE_MS = 60_000
 
-/** The longest log kept locally. Stage 3 replaces this with real storage. */
-const MAX_LOG_ENTRIES = 50
+/** The longest log kept locally. Stage 4 replaces this with real storage. */
+const MAX_LOG_ENTRIES = 200
 
 const store = createExternalStore<ActiveSession | null>(null)
 
 const logStore = createExternalStore<readonly SessionLogEntry[]>([])
+
+const EMPTY_LOG: readonly SessionLogEntry[] = []
 
 let seeded = false
 let logSeeded = false
@@ -68,13 +77,50 @@ function createId(): string {
 function ensureSeeded(): void {
   if (seeded) return
   seeded = true
-  store.setState(readLocal<ActiveSession | null>(SESSION_KEY, null))
+
+  const stored = readPersisted({
+    key: SESSION_KEY,
+    version: VERSIONS.session,
+    schema: activeSessionSchema,
+    migrate: MIGRATIONS.session,
+    fallback: () => null,
+  })
+
+  store.setState(normalizeSession(stored))
+}
+
+/**
+ * Repairs a session that could not have happened.
+ *
+ * Storage is the one place untrusted data enters the app, and a session with
+ * impossible timestamps would make the clock show something absurd rather than
+ * merely wrong. Two invariants matter and both are cheap to restore:
+ *
+ *   • a `running` session must have a `runStartedAt`, and a paused or completed
+ *     one must not — otherwise elapsed time is either frozen or double-counted;
+ *   • a session that finished before it started is discarded, not repaired.
+ */
+function normalizeSession(session: ActiveSession | null): ActiveSession | null {
+  if (session === null) return null
+  if (session.startedAt > Date.now()) return null
+
+  if (session.status === 'running' && session.runStartedAt === null) {
+    return { ...session, status: 'paused', pausedAt: Date.now() }
+  }
+  if (session.status !== 'running' && session.runStartedAt !== null) {
+    return { ...session, runStartedAt: null }
+  }
+  if (session.status === 'completed' && session.finishedMs === null) {
+    return { ...session, finishedMs: session.bankedMs }
+  }
+
+  return session
 }
 
 function commit(session: ActiveSession | null): void {
   store.setState(session)
-  if (session === null) removeLocal(SESSION_KEY)
-  else writeLocal(SESSION_KEY, session)
+  if (session === null) removePersisted(SESSION_KEY)
+  else writePersisted(SESSION_KEY, VERSIONS.session, session)
 }
 
 /**
@@ -146,7 +192,15 @@ export function subscribeToSession(listener: () => void): () => void {
 export function getSessionLog(): readonly SessionLogEntry[] {
   if (!logSeeded) {
     logSeeded = true
-    logStore.setState(readLocal<readonly SessionLogEntry[]>(LOG_KEY, []))
+    logStore.setState(
+      readPersisted({
+        key: LOG_KEY,
+        version: VERSIONS.sessionLog,
+        schema: sessionLogSchema,
+        migrate: MIGRATIONS.sessionLog,
+        fallback: () => EMPTY_LOG,
+      }),
+    )
   }
   return logStore.getState()
 }
@@ -154,18 +208,13 @@ export function getSessionLog(): readonly SessionLogEntry[] {
 export function useSessionLog(): readonly SessionLogEntry[] {
   return useSyncExternalStore(
     (listener) => {
-      if (!logSeeded) {
-        logSeeded = true
-        logStore.setState(readLocal<readonly SessionLogEntry[]>(LOG_KEY, []))
-      }
+      getSessionLog()
       return logStore.subscribe(listener)
     },
     getSessionLog,
     () => EMPTY_LOG,
   )
 }
-
-const EMPTY_LOG: readonly SessionLogEntry[] = []
 
 /** Human label for a status, shared by the room, the live region and toasts. */
 export function describeStatus(status: SessionStatus): string {
@@ -246,7 +295,7 @@ function recordInLog(entry: SessionLogEntry): void {
     MAX_LOG_ENTRIES,
   )
   logStore.setState(log)
-  writeLocal(LOG_KEY, log)
+  writePersisted(LOG_KEY, VERSIONS.sessionLog, log)
 }
 
 /**
@@ -257,6 +306,13 @@ function recordInLog(entry: SessionLogEntry): void {
  * a single code path rather than three near-identical ones.
  */
 export function completeSession(reason: SessionEndReason, now: number = Date.now()): void {
+  const before = getSession()
+  if (!before || before.status === 'completed') return
+
+  // Anything typed but not yet debounced is written first, and the session is
+  // re-read afterwards — otherwise the commit and the log entry below would
+  // both snapshot the pre-flush value and drop the note.
+  flushNotes?.()
   const session = getSession()
   if (!session || session.status === 'completed') return
 
@@ -323,6 +379,33 @@ export function setNotes(notes: string): void {
   const session = getSession()
   if (!session || session.notes === notes) return
   commit({ ...session, notes })
+}
+
+/* ------------------------------------------------------------------------- *
+ * Notes that have been typed but not yet written
+ * ------------------------------------------------------------------------- */
+
+/**
+ * The notes panel debounces writes by ~450ms so that holding a key down does not
+ * re-render the room on every character. That leaves a window where the text
+ * exists only in a textarea.
+ *
+ * If the session ends inside that window — pressing `F` finishes without ever
+ * blurring the field — the note would be dropped on the floor, because
+ * `completeSession` reads `session.notes` and has no way to know a newer value
+ * exists.
+ *
+ * Rather than poll, or force a blur, or ask the panel to guess: the panel
+ * registers the one thing it can do about it, and completion asks for it first.
+ * One registration, cleared on unmount, and the failure mode is closed.
+ */
+let flushNotes: (() => void) | null = null
+
+export function registerNotesFlush(flush: () => void): () => void {
+  flushNotes = flush
+  return () => {
+    if (flushNotes === flush) flushNotes = null
+  }
 }
 
 /* ------------------------------------------------------------------------- *

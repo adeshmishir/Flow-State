@@ -19,6 +19,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { SegmentedRadio } from '@/components/ui/segmented-radio'
 import { toast } from '@/components/ui/toast'
+import { usePreferences } from '@/features/preferences/preferences-store'
 import { TaskFormFields } from '@/features/tasks/task-form-fields'
 import { taskFormSchema, toNewTask } from '@/features/tasks/task-form-schema'
 import { NEW_TASK_VALUE, TaskSelector } from '@/features/tasks/task-selector'
@@ -78,12 +79,14 @@ export function draftToQuery(draft: SessionDraft): string {
 function SessionSetupDialog({ open, onOpenChange, initialTaskId }: SessionSetupDialogProps) {
   const router = useRouter()
   const tasks = useTasks()
+  const preferences = usePreferences()
+  const defaultLength = preferences.defaultSessionMinutes
   const taskPickerErrorId = useId()
 
   const setupForm = useForm<SetupValues>({
     resolver: zodResolver(setupSchema),
     mode: 'onSubmit',
-    defaultValues: { taskId: '', length: '50' },
+    defaultValues: { taskId: '', length: toSessionLength(undefined, defaultLength) },
   })
 
   const taskForm = useForm<z.infer<typeof taskFormSchema>>({
@@ -111,7 +114,8 @@ function SessionSetupDialog({ open, onOpenChange, initialTaskId }: SessionSetupD
 
   // The recommended task is whatever Home pointed at, falling back to the top of
   // the queue. Its own estimate becomes the pre-selected length, so the common
-  // path is one keypress.
+  // path is one keypress — and a task with no estimate falls back to the length
+  // the person set as their default, not to a hard-coded one.
   const recommended = tasks.find((task) => task.id === initialTaskId) ?? tasks[0]
 
   // Opening the dialog always shows the recommended task, never whatever the last
@@ -121,10 +125,10 @@ function SessionSetupDialog({ open, onOpenChange, initialTaskId }: SessionSetupD
 
     resetSetup({
       taskId: recommended?.id ?? '',
-      length: toSessionLength(recommended?.estimatedMinutes),
+      length: toSessionLength(recommended?.estimatedMinutes, defaultLength),
     })
     resetTask({ title: '', description: '', estimatedMinutes: '', project: '' })
-  }, [open, recommended, resetSetup, resetTask])
+  }, [open, recommended, defaultLength, resetSetup, resetTask])
 
   const selectTask = useCallback(
     (value: string) => {
@@ -132,9 +136,11 @@ function SessionSetupDialog({ open, onOpenChange, initialTaskId }: SessionSetupD
       if (value === NEW_TASK_VALUE) return
       const task = tasks.find((candidate) => candidate.id === value)
       if (!task) return
-      setValue('length', toSessionLength(task.estimatedMinutes), { shouldValidate: false })
+      setValue('length', toSessionLength(task.estimatedMinutes, defaultLength), {
+        shouldValidate: false,
+      })
     },
-    [setValue, tasks],
+    [setValue, tasks, defaultLength],
   )
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

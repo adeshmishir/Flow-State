@@ -1,4 +1,4 @@
-import { CalendarClock, House, SlidersHorizontal, Timer } from 'lucide-react'
+import { CalendarClock, House, ListTodo, SlidersHorizontal, Timer } from 'lucide-react'
 
 import type { NavItem } from '@/types/navigation'
 
@@ -18,6 +18,12 @@ export const primaryNavItems: readonly NavItem[] = [
     to: '/focus',
     icon: Timer,
     description: 'Run a session',
+  },
+  {
+    label: 'Tasks',
+    to: '/tasks',
+    icon: ListTodo,
+    description: 'Your queue',
   },
   {
     label: 'History',

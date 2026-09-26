@@ -4,6 +4,7 @@ import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 
 import { Logo } from '@/components/brand/logo'
 import { AppNavLink } from '@/components/layout/app-nav-link'
+import { CommandPaletteTrigger } from '@/components/layout/command-palette-trigger'
 import { UserMenu } from '@/components/layout/user-menu'
 import { Eyebrow } from '@/components/ui/eyebrow'
 import { IconButton } from '@/components/ui/icon-button'
@@ -84,6 +85,12 @@ function AppSidebar({ collapsed, onToggleCollapsed, locked = false }: AppSidebar
               <AppNavLink item={settingsNavItem} variant="rail" showLabel={false} />
             </li>
             <li>
+              {/* Search is here as well as in the top bar: the rail is the
+                  navigation surface on desktop, and a feature reachable only by a
+                  keyboard chord is not really in the product. */}
+              <CommandPaletteTrigger variant="rail" />
+            </li>
+            <li>
               <UserMenu variant="compact" />
             </li>
             <li>
@@ -104,6 +111,9 @@ function AppSidebar({ collapsed, onToggleCollapsed, locked = false }: AppSidebar
         ) : (
           <>
             <AppNavLink item={settingsNavItem} variant="rail" />
+            <div className="mt-1">
+              <CommandPaletteTrigger variant="rail" />
+            </div>
             <UserMenu variant="full" className="mt-1" />
           </>
         )}

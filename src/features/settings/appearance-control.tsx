@@ -1,8 +1,6 @@
 'use client'
 
 import { SegmentedRadio, type SegmentedOption } from '@/components/ui/segmented-radio'
-import { Surface } from '@/components/ui/surface'
-import { Eyebrow } from '@/components/ui/eyebrow'
 import { type ThemePreference, useTheme } from '@/hooks/use-theme'
 
 const THEME_OPTIONS: readonly SegmentedOption<ThemePreference>[] = [
@@ -18,26 +16,25 @@ const HINTS: Record<ThemePreference, string> = {
 }
 
 /**
- * Appearance is the one preference that belongs to the design system itself
- * rather than to a later feature, so it is live on this route. Everything else
- * on Settings is still on the roadmap.
+ * Appearance.
+ *
+ * Kept as its own component rather than folded into the focus preferences, for
+ * one reason: theme is applied by an inline script in the document head, before
+ * React exists at all, so it is a different kind of setting with a different kind
+ * of failure mode. Merging the two would hide that behind a shared form.
  */
 function AppearanceControl() {
   const { preference, setPreference } = useTheme()
 
   return (
-    <Surface className="p-6 sm:p-8">
-      <Eyebrow>Appearance</Eyebrow>
-      <SegmentedRadio
-        className="mt-4 max-w-sm"
-        legend="Theme"
-        name="theme"
-        options={THEME_OPTIONS}
-        value={preference}
-        onValueChange={setPreference}
-        hint={HINTS[preference]}
-      />
-    </Surface>
+    <SegmentedRadio
+      legend="Theme"
+      name="theme"
+      options={THEME_OPTIONS}
+      value={preference}
+      onValueChange={setPreference}
+      hint={HINTS[preference]}
+    />
   )
 }
 

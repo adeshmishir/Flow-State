@@ -27,6 +27,7 @@ export const SESSION_LENGTH_OPTIONS: readonly {
   { value: '90', label: '90 min', hint: 'A long haul. Only when the task is genuinely deep.' },
 ]
 
+/** The length offered when nothing else says otherwise. Overridable in Settings. */
 export const DEFAULT_SESSION_LENGTH: SessionSetupValues['length'] = '50'
 
 /**
@@ -35,9 +36,18 @@ export const DEFAULT_SESSION_LENGTH: SessionSetupValues['length'] = '50'
  * A task estimated at 40 minutes should open the dialog on 50, not silently on
  * the 25 — the estimate is a hint, and the nearest option is the honest reading
  * of it.
+ *
+ * `fallback` is the caller's configured default rather than the constant, because
+ * a person who set their default to 25 minutes should not be shown 50 when they
+ * pick a task with no estimate. The parameter is a plain number so this module
+ * stays pure and does not have to read the preferences store.
  */
-export function toSessionLength(minutes: number | null | undefined): SessionSetupValues['length'] {
-  const defaultLength = DEFAULT_SESSION_LENGTH
+export function toSessionLength(
+  minutes: number | null | undefined,
+  fallback: number = Number(DEFAULT_SESSION_LENGTH),
+): SessionSetupValues['length'] {
+  const defaultLength = toOfferedLength(fallback)
+
   if (typeof minutes !== 'number' || !Number.isFinite(minutes) || minutes <= 0) {
     return defaultLength
   }
@@ -54,6 +64,14 @@ export function toSessionLength(minutes: number | null | undefined): SessionSetu
   }
 
   return nearest
+}
+
+/** A configured default that is not one of the offered lengths still snaps to one. */
+function toOfferedLength(minutes: number): SessionSetupValues['length'] {
+  const values = SESSION_LENGTH_OPTIONS.map((option) => option.value)
+  return values.includes(String(minutes) as SessionSetupValues['length'])
+    ? (String(minutes) as SessionSetupValues['length'])
+    : DEFAULT_SESSION_LENGTH
 }
 
 export function toDraftMinutes(length: SessionSetupValues['length']): number {

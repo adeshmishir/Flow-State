@@ -8,11 +8,19 @@ import { ESTIMATE_BOUNDS, type TaskFormValues } from '@/features/tasks/task-form
 import { cn } from '@/lib/utils'
 
 /**
- * New-task fields.
+ * Task fields.
  *
- * Deliberately three rows rather than a form: the description is genuinely
- * optional and gets the least space, while the estimate sits next to the project
- * because those two are read together.
+ * Deliberately rows rather than a form: the description is genuinely optional
+ * and gets the least space, while the estimate sits next to the project because
+ * those two are read together.
+ *
+ * Shared verbatim by "add a task" and "edit a task" — the validation rules for a
+ * task should not be able to drift apart between the two screens, and the only
+ * difference between them is the surrounding dialog.
+ *
+ * `idPrefix` exists because these ids are global to the document. Two mounted
+ * forms with the same ids would give the labels the wrong target and would make
+ * `aria-describedby` ambiguous, so the editing dialog passes its own prefix.
  *
  * Accessibility notes that are easy to skip and very hard to notice later:
  * `aria-invalid` and `aria-describedby` point at the same ids the error
@@ -24,18 +32,21 @@ import { cn } from '@/lib/utils'
 type TaskFormFieldsProps = {
   register: UseFormRegister<TaskFormValues>
   errors: FieldErrors<TaskFormValues>
+  idPrefix?: string
 }
 
-function TaskFormFields({ register, errors }: TaskFormFieldsProps) {
+function TaskFormFields({ register, errors, idPrefix = 'new-task' }: TaskFormFieldsProps) {
+  const id = (field: string) => `${idPrefix}-${field}`
+
   return (
     <div className="gap-4 flex flex-col">
-      <Field label="Task" htmlFor="new-task-title" error={errors.title?.message}>
+      <Field label="Task" htmlFor={id('title')} error={errors.title?.message}>
         <Input
-          id="new-task-title"
+          id={id('title')}
           autoComplete="off"
           placeholder="Write the ingest migration guide"
           aria-invalid={errors.title ? true : undefined}
-          aria-describedby={errors.title ? 'new-task-title-error' : undefined}
+          aria-describedby={errors.title ? `${id('title')}-error` : undefined}
           {...register('title')}
         />
       </Field>
@@ -43,29 +54,29 @@ function TaskFormFields({ register, errors }: TaskFormFieldsProps) {
       <div className="gap-3 grid grid-cols-[1fr_7rem]">
         <Field
           label="Project"
-          htmlFor="new-task-project"
+          htmlFor={id('project')}
           error={errors.project?.message}
           hint="Optional"
         >
           <Input
-            id="new-task-project"
+            id={id('project')}
             autoComplete="off"
             placeholder="Inbox"
             aria-invalid={errors.project ? true : undefined}
-            aria-describedby={errors.project ? 'new-task-project-error' : undefined}
+            aria-describedby={errors.project ? `${id('project')}-error` : undefined}
             {...register('project')}
           />
         </Field>
 
         <Field
           label="Estimate"
-          htmlFor="new-task-estimate"
+          htmlFor={id('estimate')}
           error={errors.estimatedMinutes?.message}
           hint="Optional"
         >
           <div className="relative">
             <Input
-              id="new-task-estimate"
+              id={id('estimate')}
               type="number"
               inputMode="numeric"
               min={ESTIMATE_BOUNDS.min}
@@ -75,7 +86,7 @@ function TaskFormFields({ register, errors }: TaskFormFieldsProps) {
               className="no-spinner pr-10"
               aria-invalid={errors.estimatedMinutes ? true : undefined}
               aria-describedby={
-                errors.estimatedMinutes ? 'new-task-estimate-error' : 'new-task-estimate-hint'
+                errors.estimatedMinutes ? `${id('estimate')}-error` : `${id('estimate')}-hint`
               }
               {...register('estimatedMinutes')}
             />
@@ -86,7 +97,7 @@ function TaskFormFields({ register, errors }: TaskFormFieldsProps) {
               min
             </span>
           </div>
-          <p id="new-task-estimate-hint" className="sr-only">
+          <p id={`${id('estimate')}-hint`} className="sr-only">
             Optional. A whole number of minutes between {ESTIMATE_BOUNDS.min} and{' '}
             {ESTIMATE_BOUNDS.max}.
           </p>
@@ -95,12 +106,12 @@ function TaskFormFields({ register, errors }: TaskFormFieldsProps) {
 
       <Field
         label="Description"
-        htmlFor="new-task-description"
+        htmlFor={id('description')}
         error={errors.description?.message}
         hint="Optional. Shown only if you open notes later."
       >
         <textarea
-          id="new-task-description"
+          id={id('description')}
           rows={2}
           maxLength={280}
           placeholder="Backfill order, dual-write window, rollback path."
@@ -112,7 +123,7 @@ function TaskFormFields({ register, errors }: TaskFormFieldsProps) {
             'aria-invalid:border-danger',
           )}
           aria-invalid={errors.description ? true : undefined}
-          aria-describedby={errors.description ? 'new-task-description-error' : undefined}
+          aria-describedby={errors.description ? `${id('description')}-error` : undefined}
           {...register('description')}
         />
       </Field>

@@ -29,6 +29,25 @@ export const OVERLAY_TRANSITION: Transition = {
   ease: EASE_OUT,
 }
 
+/**
+ * A list item entering or leaving.
+ *
+ * Used by the task queue, where a completed task collapses out of the open list
+ * and a restored one expands back in. The height is left to layout rather than
+ * animated explicitly: `layout` on the parent handles the reflow, and driving
+ * height from a variant produces a visible lag between the two.
+ */
+export const listTransition: Transition = {
+  duration: 0.2,
+  ease: EASE_OUT,
+}
+
+export const listItemVariants: Variants = {
+  hidden: { opacity: 0, y: -4 },
+  visible: { opacity: 1, y: 0, transition: listTransition },
+  exit: { opacity: 0, transition: { duration: 0.14, ease: EASE_OUT } },
+}
+
 /** The wrapper `app/template.tsx` puts around every route. */
 export const routeVariants: Variants = {
   hidden: { opacity: 0, y: 6 },
