@@ -1,0 +1,130 @@
+/**
+ * Flowstate — Design Tokens
+ * ---------------------------------------------------------------------------
+ * A small, intentional token system. Everything downstream (Tailwind theme,
+ * component styles, later stages) reads from these variables so the visual
+ * identity can be re-tuned from one place.
+ *
+ * Palette philosophy: warm neutral greys (hue ~70 in OKLCH, i.e. slightly
+ * sand-toned rather than blue-toned) + a single clay accent. No second hue is
+ * introduced anywhere in the product except semantic status colours.
+ *
+ * Colour space: OKLCH. Perceptually uniform, so the neutral ramp stays
+ * consistent and the accent keeps the same perceived lightness across themes.
+ */
+
+/* ------------------------------------------------------------------------- *
+ * Light — "paper"
+ * ------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  /* Surfaces ------------------------------------------------------------- */
+  --canvas: oklch(0.981 0.0035 84);
+  --surface: oklch(0.999 0.0005 84);
+  --surface-sunken: oklch(0.962 0.004 82);
+  --surface-raised: oklch(1 0 0);
+  --surface-overlay: oklch(0.999 0.0005 84);
+
+  /* Content -------------------------------------------------------------- */
+  --ink: oklch(0.212 0.0055 68);
+  --ink-secondary: oklch(0.412 0.0072 70);
+  --ink-muted: oklch(0.545 0.0078 72);
+  --ink-subtle: oklch(0.665 0.0072 74);
+  --ink-inverted: oklch(0.985 0.002 84);
+
+  /* Lines ---------------------------------------------------------------- */
+  --line: oklch(0.902 0.004 80);
+  --line-strong: oklch(0.848 0.005 80);
+  --line-subtle: oklch(0.937 0.0035 80);
+
+  /* Accent — clay. The only chromatic colour in the interface. ----------- */
+  --accent-hue: 47;
+  --accent: oklch(0.545 0.118 var(--accent-hue));
+  --accent-hover: oklch(0.505 0.118 var(--accent-hue));
+  --accent-active: oklch(0.468 0.112 var(--accent-hue));
+  --accent-ink: oklch(0.995 0.003 80);
+  --accent-soft: oklch(0.948 0.029 var(--accent-hue));
+  --accent-soft-ink: oklch(0.44 0.108 var(--accent-hue));
+
+  /* Status --------------------------------------------------------------- */
+  --success: oklch(0.532 0.108 155);
+  --success-soft: oklch(0.952 0.038 155);
+  --warning: oklch(0.632 0.128 72);
+  --warning-soft: oklch(0.958 0.045 82);
+  --danger: oklch(0.548 0.185 26);
+  --danger-soft: oklch(0.955 0.032 26);
+
+  /* Focus ---------------------------------------------------------------- */
+  --focus: oklch(0.545 0.118 var(--accent-hue));
+  --focus-halo: oklch(0.545 0.118 var(--accent-hue) / 0.22);
+
+  /* Elevation — warm-tinted, low opacity, never stacked -------------------- */
+  --shadow-tint: 34 18 8;
+  --shadow-xs: 0 1px 1.5px -0.5px rgb(var(--shadow-tint) / 0.07);
+  --shadow-sm:
+    0 1px 2px -1px rgb(var(--shadow-tint) / 0.09), 0 2px 5px -2px rgb(var(--shadow-tint) / 0.07);
+  --shadow-md:
+    0 2px 4px -2px rgb(var(--shadow-tint) / 0.1), 0 8px 18px -8px rgb(var(--shadow-tint) / 0.1);
+  --shadow-lg:
+    0 4px 8px -4px rgb(var(--shadow-tint) / 0.1), 0 20px 40px -12px rgb(var(--shadow-tint) / 0.16);
+  --shadow-focus: 0 0 0 3px var(--focus-halo);
+}
+
+/* ------------------------------------------------------------------------- *
+ * Dark — "ink". Default theme.
+ * ------------------------------------------------------------------------- */
+.dark {
+  color-scheme: dark;
+
+  /* Surfaces — a deep, warm charcoal. Layered, never pure black. --------- */
+  --canvas: oklch(0.172 0.0055 66);
+  --surface: oklch(0.212 0.0062 66);
+  --surface-sunken: oklch(0.147 0.0052 66);
+  --surface-raised: oklch(0.246 0.0068 66);
+  --surface-overlay: oklch(0.229 0.0065 66);
+
+  /* Content -------------------------------------------------------------- */
+  --ink: oklch(0.948 0.0035 82);
+  --ink-secondary: oklch(0.808 0.0055 78);
+  --ink-muted: oklch(0.678 0.0068 76);
+  --ink-subtle: oklch(0.558 0.0068 74);
+  --ink-inverted: oklch(0.185 0.006 66);
+
+  /* Lines ---------------------------------------------------------------- */
+  --line: oklch(0.288 0.0068 70);
+  --line-strong: oklch(0.365 0.0072 72);
+  --line-subtle: oklch(0.245 0.0062 70);
+
+  /* Accent — clay, lifted for legibility on dark surfaces. --------------- */
+  --accent-hue: 52;
+  --accent: oklch(0.735 0.132 var(--accent-hue));
+  --accent-hover: oklch(0.782 0.128 var(--accent-hue));
+  --accent-active: oklch(0.822 0.118 var(--accent-hue));
+  --accent-ink: oklch(0.185 0.028 var(--accent-hue));
+  --accent-soft: oklch(0.288 0.045 var(--accent-hue));
+  --accent-soft-ink: oklch(0.852 0.078 var(--accent-hue));
+
+  /* Status --------------------------------------------------------------- */
+  --success: oklch(0.762 0.132 158);
+  --success-soft: oklch(0.278 0.048 158);
+  --warning: oklch(0.822 0.132 82);
+  --warning-soft: oklch(0.3 0.05 82);
+  --danger: oklch(0.712 0.168 26);
+  --danger-soft: oklch(0.3 0.062 26);
+
+  /* Focus ---------------------------------------------------------------- */
+  --focus: oklch(0.775 0.126 var(--accent-hue));
+  --focus-halo: oklch(0.775 0.126 var(--accent-hue) / 0.24);
+
+  /* Elevation — in dark, elevation is expressed with lift, not shadow. --- */
+  --shadow-tint: 6 4 2;
+  --shadow-xs: 0 1px 1.5px -0.5px rgb(var(--shadow-tint) / 0.4);
+  --shadow-sm:
+    0 1px 2px -1px rgb(var(--shadow-tint) / 0.5), 0 2px 6px -2px rgb(var(--shadow-tint) / 0.45);
+  --shadow-md:
+    0 2px 4px -2px rgb(var(--shadow-tint) / 0.5), 0 10px 22px -8px rgb(var(--shadow-tint) / 0.6);
+  --shadow-lg:
+    0 4px 10px -4px rgb(var(--shadow-tint) / 0.55), 0 24px 48px -12px rgb(var(--shadow-tint) / 0.7);
+  --shadow-focus: 0 0 0 3px var(--focus-halo);
+}

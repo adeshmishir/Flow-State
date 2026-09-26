@@ -1,0 +1,116 @@
+/**
+ * Flowstate — Tailwind theme bridge
+ * ---------------------------------------------------------------------------
+ * Maps the raw tokens in `tokens.css` onto Tailwind utilities, then extends the
+ * scales (radius, type, easing) so the design system is expressed as tokens
+ * rather than one-off values scattered through components.
+ */
+
+@theme inline {
+  /* Typefaces — resolved from the `next/font` variables set on <html>.
+     System fallbacks stay in the stack so text is never invisible. ------ */
+  --font-sans:
+    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:
+    var(--font-geist-mono), ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
+
+  /* Colour -------------------------------------------------------------- */
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-sunken: var(--surface-sunken);
+  --color-raised: var(--surface-raised);
+  --color-overlay: var(--surface-overlay);
+
+  --color-ink: var(--ink);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-ink-inverted: var(--ink-inverted);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-line-subtle: var(--line-subtle);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-active: var(--accent-active);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-ink: var(--accent-soft-ink);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
+  /* Radius — deliberately small. Flowstate reads precise, not bubbly. ---- */
+  --radius-xs: 0.1875rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+
+  /* Type scale — compact, editorial. Pair each step with its own leading. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-2xs--letter-spacing: 0.01em;
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.0625rem;
+  --text-xs--letter-spacing: 0.005em;
+
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.1875rem;
+
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.375rem;
+
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.5rem;
+  --text-lg--letter-spacing: -0.005em;
+
+  --text-xl: 1.125rem;
+  --text-xl--line-height: 1.6875rem;
+  --text-xl--letter-spacing: -0.011em;
+
+  --text-2xl: 1.375rem;
+  --text-2xl--line-height: 1.875rem;
+  --text-2xl--letter-spacing: -0.015em;
+
+  --text-3xl: 1.75rem;
+  --text-3xl--line-height: 2.125rem;
+  --text-3xl--letter-spacing: -0.021em;
+
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+  --text-4xl--letter-spacing: -0.026em;
+
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 3.125rem;
+  --text-5xl--letter-spacing: -0.03em;
+
+  /* Elevation ------------------------------------------------------------ */
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  /* Motion — one family of curves, nothing bouncy. ----------------------- */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+}
+
+/**
+ * Container widths. The shell is narrow on purpose — a focus tool should not
+ * stretch content across a 27" display.
+ */
+@theme {
+  --container-shell: 68rem;
+  --container-shell-wide: 76rem;
+  --container-reading: 42rem;
+}

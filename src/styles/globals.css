@@ -1,0 +1,38 @@
+/*
+ * Flowstate — global stylesheet
+ * Entry point for the design system. Order matters:
+ *   tailwind  ->  tokens  ->  theme bridge  ->  element defaults
+ *
+ * Fonts are not imported here: `next/font` in the root layout generates a
+ * self-hosted `@font-face` with size-adjust fallbacks, which removes the
+ * render-blocking third-party request and the layout shift entirely.
+ */
+
+@import 'tailwindcss';
+
+@import './tokens.css';
+@import './theme.css';
+@import './base.css';
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * App chrome. The canvas carries a very low-amplitude vertical wash so the
+ * viewport reads as lit rather than flat — no blobs, no glow, no gradient mesh.
+ */
+@layer base {
+  body {
+    background-image: linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--ink) 3.5%, transparent) 0%,
+      transparent 34rem
+    );
+    background-repeat: no-repeat;
+  }
+
+  /* Sonner inherits Flowstate surfaces instead of shipping its own theme. */
+  [data-sonner-toaster] {
+    --normal-bg: var(--surface-overlay);
+    --normal-border: var(--line);
+  }
+}
