@@ -257,7 +257,7 @@ function ShortcutsHint({ visible }: { visible: boolean }) {
   if (!visible) return null
 
   return (
-    <ul className="gap-x-4 gap-y-1.5 md:flex hidden flex-wrap items-center justify-center text-2xs text-ink-subtle">
+    <ul className="gap-x-4 gap-y-1.5 md:flex hidden flex-wrap items-center justify-center text-2xs text-ink-muted">
       {SESSION_SHORTCUTS.map((shortcut) => (
         <li key={shortcut.keys} className="gap-1.5 flex items-center">
           <Kbd>{shortcut.keys}</Kbd>

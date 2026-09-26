@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 
 import { PageHeader } from '@/components/layout/page-header'
 import { PageContainer } from '@/components/motion/page-container'
+import { Skeleton } from '@/components/ui/skeleton'
 import { HistoryScreen } from '@/features/history/history-screen'
 
 /**
@@ -41,9 +42,9 @@ export default function HistoryPage() {
 function HistoryFallback() {
   return (
     <div aria-busy="true" className="gap-4 flex flex-col">
-      <div className="h-28 animate-pulse rounded-lg border border-line-subtle" />
-      <div className="h-9 animate-pulse rounded-md border border-line-subtle" />
-      <div className="h-40 animate-pulse rounded-lg border border-line-subtle" />
+      <Skeleton className="h-28 rounded-lg border border-line-subtle" />
+      <Skeleton className="h-9 rounded-md border border-line-subtle" />
+      <Skeleton className="h-40 rounded-lg border border-line-subtle" />
     </div>
   )
 }

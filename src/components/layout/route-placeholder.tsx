@@ -65,7 +65,7 @@ function RoutePlaceholder({
 
           <Separator className="my-6" />
 
-          <p className="text-xs text-ink-subtle">
+          <p className="text-xs text-ink-muted">
             This route is designed, routed and themed. Its behaviour arrives in a later stage.
           </p>
         </Surface>

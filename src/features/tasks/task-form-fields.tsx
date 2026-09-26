@@ -92,7 +92,7 @@ function TaskFormFields({ register, errors, idPrefix = 'new-task' }: TaskFormFie
             />
             <span
               aria-hidden="true"
-              className="inset-y-0 right-3 pointer-events-none absolute flex items-center text-2xs text-ink-subtle"
+              className="inset-y-0 right-3 pointer-events-none absolute flex items-center text-2xs text-ink-muted"
             >
               min
             </span>
@@ -116,8 +116,8 @@ function TaskFormFields({ register, errors, idPrefix = 'new-task' }: TaskFormFie
           maxLength={280}
           placeholder="Backfill order, dual-write window, rollback path."
           className={cn(
-            'p-3 w-full resize-y rounded-md border border-line bg-surface',
-            'text-sm text-ink placeholder:text-ink-subtle',
+            'p-3 w-full resize-y rounded-md border border-line-control bg-surface',
+            'text-sm text-ink placeholder:text-ink-muted',
             'transition-[border-color,box-shadow] duration-150 ease-standard',
             'focus-visible:shadow-focus focus-visible:border-accent focus-visible:outline-none',
             'aria-invalid:border-danger',
@@ -149,7 +149,7 @@ function Field({ label, htmlFor, error, hint, children }: FieldProps) {
           {error}
         </p>
       ) : hint ? (
-        <p className="text-2xs text-ink-subtle">{hint}</p>
+        <p className="text-2xs text-ink-muted">{hint}</p>
       ) : null}
     </div>
   )

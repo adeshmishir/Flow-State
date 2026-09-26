@@ -14,7 +14,6 @@ import {
 import { IconButton } from '@/components/ui/icon-button'
 import { Input } from '@/components/ui/input'
 import { SegmentedRadio } from '@/components/ui/segmented-radio'
-import { Tooltip } from '@/components/ui/tooltip'
 import {
   HISTORY_PERIODS,
   HISTORY_SORTS,
@@ -119,7 +118,7 @@ function HistoryControls({
           options={HISTORY_PERIODS}
         />
 
-        <p aria-live="polite" className="text-xs text-ink-subtle">
+        <p aria-live="polite" className="text-xs text-ink-muted">
           {resultCount === 0 ? 'No matching sessions' : pluralize(resultCount, 'session')}
         </p>
       </div>
@@ -153,7 +152,7 @@ function TaskFilterMenu({ selectedId, selectedTitle, options, onSelect }: TaskFi
         </DropdownMenuItem>
 
         {options.length === 0 ? (
-          <p className="px-3 py-2 text-xs text-ink-subtle">No tasks in your history yet.</p>
+          <p className="px-3 py-2 text-xs text-ink-muted">No tasks in your history yet.</p>
         ) : null}
 
         {options.map((task) => (
@@ -175,12 +174,18 @@ type SortMenuProps = {
 function SortMenu({ value, onSelect }: SortMenuProps) {
   return (
     <DropdownMenu>
+      {/* No Tooltip wrapper here.
+          `DropdownMenuTrigger asChild` hands its ref to the element directly
+          below it, and `Tooltip` is a function component that forwards nothing —
+          so the trigger had no node to anchor to and the menu never opened on
+          click. The button is also icon-only and already carries
+          `aria-label="Sort sessions"`, which is the name a tooltip would have
+          repeated anyway. `Tooltip` now forwards its ref, so the wrapper is
+          safe if it is ever wanted back. */}
       <DropdownMenuTrigger asChild>
-        <Tooltip label="Sort sessions">
-          <IconButton label="Sort sessions" variant="outline" size="icon-md">
-            <ArrowDownWideNarrow aria-hidden="true" />
-          </IconButton>
-        </Tooltip>
+        <IconButton label="Sort sessions" variant="outline" size="icon-md">
+          <ArrowDownWideNarrow aria-hidden="true" />
+        </IconButton>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end">

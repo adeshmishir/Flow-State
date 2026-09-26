@@ -8,7 +8,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Eyebrow } from '@/components/ui/eyebrow'
 import { Separator } from '@/components/ui/separator'
 import { useSessionLog } from '@/features/focus/session-store'
-import { getTasks, useTasks } from '@/features/tasks/task-store'
+import { useTasks } from '@/features/tasks/task-store'
 import { usePreferences } from '@/features/preferences/preferences-store'
 import { toast } from '@/components/ui/toast'
 import { pluralize } from '@/lib/format'
@@ -49,14 +49,22 @@ type DataPanelProps = {
 }
 
 function DataPanel({ onResetComplete }: DataPanelProps) {
-  useTasks()
   const log = useSessionLog()
   const preferences = usePreferences()
 
   const [confirming, setConfirming] = useState(false)
   const [acknowledged, setAcknowledged] = useState(false)
 
-  const tasks = getTasks()
+  // Through the hook, not `getTasks()`.
+  //
+  // The store publishes a server snapshot of the fixture seed precisely so the
+  // server-rendered HTML and the first client render agree. Reading the module
+  // directly skips that: the browser answers with whatever is in `localStorage`,
+  // so a person with an extra task got a hydration mismatch on this panel — the
+  // server said "4 tasks" and the client insisted on "5" — and React threw the
+  // subtree away and rebuilt it. The count is on screen three times here, so the
+  // mismatch was also the most visible one on the page.
+  const tasks = useTasks()
 
   // Availability is read from the persistence issue store rather than by calling
   // `isStorageAvailable()` during render.
@@ -155,7 +163,7 @@ function DataPanel({ onResetComplete }: DataPanelProps) {
         </Button>
       </div>
 
-      <p className="mt-3 max-w-reading text-2xs text-ink-subtle">
+      <p className="mt-3 max-w-reading text-2xs text-ink-muted">
         <HardDrive aria-hidden="true" className="mr-1 size-3 inline -translate-y-px" />
         Flowstate has no account and no server. Exporting is the only backup there is, and clearing
         your browser data deletes everything without asking.

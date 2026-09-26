@@ -13,7 +13,6 @@
     -webkit-text-size-adjust: 100%;
     -moz-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -109,6 +108,53 @@
 @utility tnum {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';
+}
+
+/**
+ * Minimum touch target.
+ *
+ * The icon controls in this product are 20-32px. That is deliberate with a
+ * mouse — a wall of 44px buttons would undo the quiet chrome — but it is well
+ * under the ~44px comfort threshold for a thumb, so on coarse pointers the
+ * *hit area* grows to the threshold while the drawn control stays the same size.
+ * Nothing reflows and no neighbouring target is swallowed: the floor is 40px,
+ * which is exactly what a 32px control needs inside a 4px gap, and 44px for the
+ * standalone ones.
+ *
+ * Only applied under `@media (pointer: coarse)`, so mouse and stylus users never
+ * get invisible padding they cannot see the edge of.
+ */
+@utility tap-target {
+  @media (pointer: coarse) {
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, 2.5rem);
+      height: max(100%, 2.5rem);
+      translate: -50% -50%;
+    }
+  }
+}
+
+/** As `tap-target`, for controls that are not inside a tight cluster. */
+@utility tap-target-lg {
+  @media (pointer: coarse) {
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, 2.75rem);
+      height: max(100%, 2.75rem);
+      translate: -50% -50%;
+    }
+  }
 }
 
 /** Removes the number-input spinners without hiding the value. */

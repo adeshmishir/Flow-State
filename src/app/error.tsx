@@ -45,7 +45,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           </p>
 
           {process.env.NODE_ENV === 'development' && error.digest ? (
-            <p className="mt-4 font-mono text-xs text-ink-subtle">digest: {error.digest}</p>
+            <p className="mt-4 font-mono text-xs text-ink-muted">digest: {error.digest}</p>
           ) : null}
 
           <div className="mt-6 gap-2 flex flex-wrap items-center">

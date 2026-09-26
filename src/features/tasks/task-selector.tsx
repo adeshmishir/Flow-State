@@ -35,7 +35,7 @@ function TaskSelector({ tasks, value, onValueChange, errorId }: TaskSelectorProp
       role="radiogroup"
       aria-label="Task"
       aria-describedby={errorId}
-      className="max-h-60 overflow-y-auto rounded-md border border-line"
+      className="max-h-60 overflow-y-auto rounded-md border border-line-control"
     >
       <ul className="divide-y divide-line">
         {tasks.map((task) => (
@@ -109,7 +109,7 @@ function TaskRow({ name, value, checked, onSelect, title, meta, icon }: TaskRowP
           aria-hidden="true"
           className={cn(
             'size-4 grid shrink-0 place-items-center rounded-full border transition-colors duration-150',
-            checked ? 'border-accent' : 'border-line-strong',
+            checked ? 'border-accent' : 'border-line-control',
           )}
         >
           <span

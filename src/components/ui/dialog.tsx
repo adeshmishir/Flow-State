@@ -34,6 +34,7 @@ function DialogOverlay({ className }: DialogOverlayProps) {
   return (
     <DialogOverlayPrimitive asChild>
       <motion.div
+        data-slot="dialog-overlay"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={OVERLAY_TRANSITION}
@@ -52,6 +53,17 @@ type DialogContentProps = Omit<
  * Centred dialog on tablet and up; a bottom sheet on phones, which is the
  * pattern people already expect from their OS. Motion is applied to an inner
  * element so the CSS positioning of the Radix content is never fought over.
+ *
+ * Two nested elements, and the split is load-bearing:
+ *
+ *   `dialog-frame` is the element Radix owns. With `asChild` it receives
+ *   `data-state`, and Radix's Presence watches *this* node for a running CSS
+ *   animation before unmounting — so the dismissal transition has to live here,
+ *   not on the panel, or the frame vanishes before the panel can finish fading.
+ *
+ *   `dialog-panel` is the visible surface. It is a child rather than the Radix
+ *   element itself so that Motion's inline `transform` (which it uses for the
+ *   entrance) and Radix's own layout never share one element.
  */
 function DialogContent({ className, children, ...props }: DialogContentProps) {
   return (
@@ -59,6 +71,7 @@ function DialogContent({ className, children, ...props }: DialogContentProps) {
       <DialogOverlay />
       <DialogContentPrimitive asChild {...props}>
         <div
+          data-slot="dialog-frame"
           className={cn(
             'inset-x-0 bottom-0 fixed z-50 mx-auto flex w-full justify-center',
             'pb-[max(1rem,env(safe-area-inset-bottom))]',
@@ -67,6 +80,7 @@ function DialogContent({ className, children, ...props }: DialogContentProps) {
           )}
         >
           <motion.div
+            data-slot="dialog-panel"
             initial={{ opacity: 0, y: 12, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.28, ease: EASE_ENTRANCE }}

@@ -115,7 +115,7 @@ type StatProps = {
 function Stat({ term, value }: StatProps) {
   return (
     <div>
-      <dt className="text-2xs tracking-[0.09em] text-ink-subtle uppercase">{term}</dt>
+      <dt className="text-2xs tracking-[0.09em] text-ink-muted uppercase">{term}</dt>
       <dd className="mt-1 font-medium tnum text-ink-secondary tabular-nums">{value}</dd>
     </div>
   )

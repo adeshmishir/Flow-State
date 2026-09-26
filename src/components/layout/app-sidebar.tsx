@@ -100,7 +100,7 @@ function AppSidebar({ collapsed, onToggleCollapsed, locked = false }: AppSidebar
                     label="Expand sidebar"
                     size="icon-sm"
                     onClick={onToggleCollapsed}
-                    className="text-ink-subtle"
+                    className="text-ink-muted"
                   >
                     <PanelLeftOpen aria-hidden="true" />
                   </IconButton>

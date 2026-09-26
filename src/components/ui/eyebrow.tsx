@@ -11,7 +11,7 @@ type EyebrowProps = ComponentPropsWithoutRef<'p'>
 function Eyebrow({ className, ...props }: EyebrowProps) {
   return (
     <p
-      className={cn('font-medium text-2xs tracking-[0.11em] text-ink-subtle uppercase', className)}
+      className={cn('font-medium text-2xs tracking-[0.11em] text-ink-muted uppercase', className)}
       {...props}
     />
   )

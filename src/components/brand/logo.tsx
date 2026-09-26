@@ -23,7 +23,7 @@ function Logo({ className, markOnly = false }: LogoProps) {
     <Link
       href="/"
       className={cn(
-        'group gap-2 inline-flex items-center rounded-md text-ink',
+        'tap-target-lg group gap-2 inline-flex items-center rounded-md text-ink',
         'focus-visible:outline-focus focus-visible:outline-2 focus-visible:outline-offset-4',
         className,
       )}
@@ -35,7 +35,7 @@ function Logo({ className, markOnly = false }: LogoProps) {
           markOnly && 'sr-only',
         )}
       >
-        Flow<span className="text-ink-subtle">state</span>
+        Flow<span className="text-ink-muted">state</span>
       </span>
     </Link>
   )

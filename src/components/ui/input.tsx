@@ -15,10 +15,10 @@ function Input({ className, type = 'text', ...props }: InputProps) {
       type={type}
       data-slot="input"
       className={cn(
-        'h-9 min-w-0 px-3 w-full rounded-md border border-line bg-surface text-sm text-ink',
-        'placeholder:text-ink-subtle',
+        'h-9 min-w-0 px-3 w-full rounded-md border border-line-control bg-surface text-sm text-ink',
+        'placeholder:text-ink-muted',
         'transition-[border-color,box-shadow,background-color] duration-150 ease-standard',
-        'hover:border-line-strong',
+        'hover:border-line-control-hover',
         'focus-visible:shadow-focus focus-visible:border-accent focus-visible:outline-none',
         'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-subtle',
         'aria-invalid:border-danger aria-invalid:shadow-none',

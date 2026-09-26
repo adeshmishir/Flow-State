@@ -28,9 +28,9 @@ export const buttonVariants = cva(
         primary:
           'bg-accent text-accent-ink shadow-xs hover:bg-accent-hover active:bg-accent-active',
         secondary:
-          'border border-line bg-surface text-ink hover:border-line-strong hover:bg-raised active:bg-ink/5',
+          'border border-line-control bg-surface text-ink hover:border-line-control-hover hover:bg-raised active:bg-ink/5',
         outline:
-          'border border-line bg-transparent text-ink-secondary hover:bg-ink/5 hover:text-ink active:bg-ink/8',
+          'border border-line-control bg-transparent text-ink-secondary hover:border-line-control-hover hover:bg-ink/5 hover:text-ink active:bg-ink/8',
         ghost: 'text-ink-secondary hover:bg-ink/5 hover:text-ink active:bg-ink/8',
         subtle: 'bg-ink/5 text-ink hover:bg-ink/8 active:bg-ink/12',
         danger:
@@ -41,8 +41,8 @@ export const buttonVariants = cva(
         sm: 'h-8 gap-1.5 px-2.5 text-xs [&_svg]:size-3.5',
         md: 'h-9 px-3.5 text-sm',
         lg: 'h-11 gap-2.5 px-5 text-base [&_svg]:size-[1.125rem]',
-        'icon-sm': 'size-8 [&_svg]:size-4',
-        'icon-md': 'size-9',
+        'icon-sm': 'tap-target size-8 [&_svg]:size-4',
+        'icon-md': 'tap-target size-9',
         'icon-lg': 'size-11 [&_svg]:size-[1.125rem]',
       },
     },

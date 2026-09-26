@@ -14,12 +14,13 @@ import {
   filterHistory,
   groupByDay,
   taskIdsInLog,
+  totalFocusedMs,
   type HistoryFilter,
   type HistoryPeriod,
   type HistorySort,
 } from '@/features/insights/derive'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
-import { formatDuration, pluralize } from '@/lib/format'
+import { formatFocused, pluralize } from '@/lib/format'
 
 /**
  * History.
@@ -91,17 +92,19 @@ function HistoryScreen({ now }: HistoryScreenProps) {
   }
 
   const week = useMemo(() => entriesInRange(log, now, 7), [log, now])
-  const weekMinutes = week.reduce((sum, entry) => sum + entry.focusedMinutes, 0)
+  // Milliseconds, not the rounded minutes: a thirty-second session is a session,
+  // and `formatFocused` is the one formatter that admits that instead of saying "0m".
+  const weekMs = totalFocusedMs(week)
 
   return (
     <div className="gap-8 flex flex-col">
       <Surface className="p-5 sm:p-6">
         <div className="gap-3 flex flex-wrap items-baseline justify-between">
           <Eyebrow>Last 7 days</Eyebrow>
-          <p className="tnum text-xs text-ink-subtle">
+          <p className="tnum text-xs text-ink-muted">
             {week.length === 0
               ? 'No focus logged'
-              : `${formatDuration(weekMinutes)} across ${pluralize(week.length, 'session')}`}
+              : `${formatFocused(weekMs)} across ${pluralize(week.length, 'session')}`}
           </p>
         </div>
         <WeekStrip log={log} now={now} className="mt-5" />
@@ -165,7 +168,7 @@ function EmptyHistory({ log, filter }: EmptyHistoryProps) {
     return (
       <div className="pt-6 border-t border-line-subtle">
         <p className="text-sm text-ink-muted">Nothing logged yet.</p>
-        <p className="mt-1.5 max-w-reading text-xs text-ink-subtle">
+        <p className="mt-1.5 max-w-reading text-xs text-ink-muted">
           Every session you finish or extend lands here, with its notes. The first one takes about a
           minute.
         </p>
@@ -180,7 +183,7 @@ function EmptyHistory({ log, filter }: EmptyHistoryProps) {
       <p className="text-sm text-ink-muted">
         {filtered ? 'Nothing matches those filters.' : 'Nothing in this period.'}
       </p>
-      <p className="mt-1.5 max-w-reading text-xs text-ink-subtle">
+      <p className="mt-1.5 max-w-reading text-xs text-ink-muted">
         {filtered
           ? 'Try a shorter search, a wider period, or all tasks.'
           : 'Your history starts at your first session. Nothing older is kept locally.'}

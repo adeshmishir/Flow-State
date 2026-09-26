@@ -3,7 +3,7 @@
 import { useId } from 'react'
 
 import { dailySeries } from '@/features/insights/derive'
-import { formatDuration, formatRelativeDay } from '@/lib/format'
+import { formatFocused, formatRelativeDay } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { SessionLogEntry } from '@/types/session'
 
@@ -33,6 +33,7 @@ import type { SessionLogEntry } from '@/types/session'
  */
 
 const DAYS = 7
+const MINUTE_MS = 60_000
 
 type WeekStripProps = {
   log: readonly SessionLogEntry[]
@@ -45,13 +46,24 @@ function WeekStrip({ log, now, className }: WeekStripProps) {
   const titleId = useId()
 
   const peak = Math.max(1, ...series.map((point) => point.focusedMinutes))
-  const total = series.reduce((sum, point) => sum + point.focusedMinutes, 0)
-  const activeDays = series.filter((point) => point.focusedMinutes > 0).length
+  const totalMinutes = series.reduce((sum, point) => sum + point.focusedMinutes, 0)
+  const sessions = series.reduce((sum, point) => sum + point.sessions, 0)
 
+  // "Did I show up?" is a question about sessions, not about rounded minutes.
+  // Counting `focusedMinutes > 0` instead made a thirty-second session vanish:
+  // the strip announced "No focus logged in the last seven days" directly above
+  // a list containing that very session.
+  const activeDays = series.filter((point) => point.sessions > 0).length
+
+  // The log stores whole minutes, so a week that sums to zero still holds real
+  // focus. `formatFocused` turns that into "under a minute" instead of the flat
+  // "0m" that reads as a rounding bug.
   const summary =
-    total === 0
+    sessions === 0
       ? 'No focus logged in the last seven days.'
-      : `${formatDuration(total)} across ${activeDays} ${activeDays === 1 ? 'day' : 'days'} in the last seven days.`
+      : `${formatFocused(totalMinutes * MINUTE_MS)} across ${activeDays} ${
+          activeDays === 1 ? 'day' : 'days'
+        } in the last seven days.`
 
   return (
     <figure aria-labelledby={titleId} className={cn('m-0', className)}>
@@ -86,7 +98,7 @@ function WeekStrip({ log, now, className }: WeekStripProps) {
               <span
                 className={cn(
                   'tnum truncate text-2xs',
-                  isToday ? 'font-medium text-ink' : 'text-ink-subtle',
+                  isToday ? 'font-medium text-ink' : 'text-ink-muted',
                 )}
               >
                 {formatRelativeDay(new Date(point.dayStart), new Date(now)) === 'Today'

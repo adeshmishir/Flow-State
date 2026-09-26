@@ -12,8 +12,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Kbd } from '@/components/ui/kbd'
+import { focusHrefForTask } from '@/features/session/focus-draft'
 import { useSessionLog } from '@/features/focus/session-store'
-import { isSearchable, searchAll } from '@/features/search/matcher'
+import { isSearchable, rankByText, searchAll } from '@/features/search/matcher'
 import { useTasks } from '@/features/tasks/task-store'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { formatDuration, formatRelativeDay } from '@/lib/format'
@@ -37,7 +38,16 @@ import type { Task } from '@/types/session'
  *
  * `shouldFilter={false}` is intentional. The shared matcher ranks results, and
  * letting cmdk filter them again on top would discard the ranking — so the
- * filtering is done here, once, by the same code History uses.
+ * filtering is done here, once, by the same code History uses. The navigation
+ * actions go through that matcher too: a palette whose own destinations cannot
+ * be typed is a menu with a search box bolted on.
+ *
+ * ## Ordering while searching
+ *
+ * Records first, actions last. Someone typing "ingest" wants the task called
+ * *Ingest migration guide*, not a generic "Open the task queue" above it — but
+ * someone typing "hist" matches no record at all, and still gets "Open history".
+ * Specific things win; navigation is the fallback, not the headline.
  *
  * ## Why search lives here
  *
@@ -53,6 +63,13 @@ type PaletteItem = {
   label: string
   hint: string
   icon: ReactNode
+  /**
+   * What the query is matched against.
+   *
+   * Keywords a person would actually type, not just the visible label: "hist"
+   * has to reach history, and "theme" has to reach settings.
+   */
+  search: string
   onSelect: () => void
 }
 
@@ -104,7 +121,7 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
   const startTask = (task: Task) => {
     onOpenChange(false)
-    router.push(`/focus?task=${encodeURIComponent(task.id)}&length=${task.estimatedMinutes ?? 50}`)
+    router.push(focusHrefForTask(task))
   }
 
   const actions: PaletteItem[] = [
@@ -112,6 +129,7 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       id: 'action-focus',
       label: 'Start a focus session',
       hint: 'Pick a task and a length',
+      search: 'start focus session begin timer run',
       icon: <Glyph d="M5 3.5v9l7.5-4.5z" />,
       onSelect: () => go('/focus'),
     },
@@ -119,6 +137,7 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       id: 'action-tasks',
       label: 'Open the task queue',
       hint: 'Reorder, edit, archive',
+      search: 'tasks task queue list todo inbox reorder',
       icon: (
         <Glyph d="M5 3h9v1.6H5zm0 4.2h9v1.6H5zM5 11.4h9V13H5zM2 3h1.6v1.6H2zm0 4.2h1.6v1.6H2zM2 11.4h1.6V13H2z" />
       ),
@@ -128,6 +147,7 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       id: 'action-history',
       label: 'Open history',
       hint: 'Search and filter past sessions',
+      search: 'history past sessions log archive',
       icon: (
         <Glyph d="M8 1.6A6.4 6.4 0 1 0 8 14.4 6.4 6.4 0 0 0 8 1.6m.7 3v3.7l2.6 1.5-.7 1.1L7.3 9V4.6z" />
       ),
@@ -137,6 +157,7 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       id: 'action-settings',
       label: 'Open settings',
       hint: 'Daily goal, default length, appearance',
+      search: 'settings preferences theme appearance dark light goal export data',
       icon: (
         <Glyph d="M8 5.4A2.6 2.6 0 1 0 8 10.6 2.6 2.6 0 0 0 8 5.4m0 1.4a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4M6.9.9l-.3 1.5-.9.4-1.3-.8-1.3 1.3.8 1.3-.4.9L1.9 5.8v1.8l1.6.3.4.9-.8 1.3 1.3 1.3 1.3-.8.9.4.3 1.6h1.8l.3-1.6.9-.4 1.3.8 1.3-1.3-.8-1.3.4-.9 1.6-.3V5.8l-1.6-.3-.4-.9.8-1.3L9.7 2l-1.3.8-.9-.4L8.7.9z" />
       ),
@@ -159,6 +180,7 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         ]
           .filter(Boolean)
           .join(' · '),
+        search: [task.title, task.project ?? '', task.description ?? ''].join(' '),
         icon: <Glyph d="M6.2 11.6 2.6 8l1.1-1.1 2.5 2.5 6.1-6.1L13.4 4.4z" />,
         onSelect: () => startTask(task),
       },
@@ -176,6 +198,7 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         hint: `${formatDuration(entry.focusedMinutes)} · ${formatRelativeDay(
           new Date(entry.startedAt),
         )}`,
+        search: [entry.taskTitle, entry.project, entry.notes].join(' '),
         icon: (
           <Glyph d="M8 1.6A6.4 6.4 0 1 0 8 14.4 6.4 6.4 0 0 0 8 1.6m.7 3v3.7l2.6 1.5-.7 1.1L7.3 9V4.6z" />
         ),
@@ -188,7 +211,18 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
   const searching = isSearchable(query)
   const pending = query !== debounced
-  const nothingFound = searching && !pending && tasks.length === 0 && sessions.length === 0
+
+  // The destinations are searchable too, ranked by the same ladder as records.
+  const visibleActions = searching
+    ? rankByText(actions, debounced, (action) => action.search)
+    : actions
+
+  const nothingFound =
+    searching &&
+    !pending &&
+    tasks.length === 0 &&
+    sessions.length === 0 &&
+    visibleActions.length === 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -205,7 +239,7 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 value={query}
                 onValueChange={setQuery}
                 placeholder="Search tasks and sessions, or jump to…"
-                className="px-5 py-4 w-full bg-transparent text-sm text-ink placeholder:text-ink-subtle focus:outline-none"
+                className="px-5 py-4 w-full bg-transparent text-sm text-ink placeholder:text-ink-muted focus:outline-none"
               />
             </div>
 
@@ -216,15 +250,20 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 </p>
               ) : null}
 
-              {searching && nothingFound ? null : (
-                <PaletteGroup heading="Actions" items={actions} />
+              {/* While searching, records lead and navigation follows them. */}
+              {searching ? (
+                <>
+                  <PaletteGroup heading="Tasks" items={tasks} />
+                  <PaletteGroup heading="Sessions" items={sessions} />
+                  <PaletteGroup heading="Go to" items={visibleActions} />
+                </>
+              ) : (
+                <PaletteGroup heading="Actions" items={visibleActions} />
               )}
-              <PaletteGroup heading="Tasks" items={tasks} />
-              <PaletteGroup heading="Sessions" items={sessions} />
             </Command.List>
 
             <div className="px-5 py-2.5 border-t border-line">
-              <p className="gap-x-4 gap-y-1 flex flex-wrap items-center text-2xs text-ink-subtle">
+              <p className="gap-x-4 gap-y-1 flex flex-wrap items-center text-2xs text-ink-muted">
                 <span className="gap-1 flex items-center">
                   <Kbd>↑</Kbd>
                   <Kbd>↓</Kbd>
@@ -253,7 +292,7 @@ const groupHeadingClasses = [
   '[&_[cmdk-group-heading]]:pb-1.5',
   '[&_[cmdk-group-heading]]:text-2xs',
   '[&_[cmdk-group-heading]]:tracking-[0.09em]',
-  '[&_[cmdk-group-heading]]:text-ink-subtle',
+  '[&_[cmdk-group-heading]]:text-ink-muted',
   '[&_[cmdk-group-heading]]:uppercase',
 ].join(' ')
 
@@ -274,7 +313,7 @@ function PaletteGroup({ heading, items }: { heading: string; items: PaletteItem[
           </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-ink">{item.label}</span>
-            <span className="block truncate text-xs text-ink-subtle">{item.hint}</span>
+            <span className="block truncate text-xs text-ink-muted">{item.hint}</span>
           </span>
         </Command.Item>
       ))}

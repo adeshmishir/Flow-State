@@ -124,3 +124,28 @@ export function searchAll(
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
 }
+
+/**
+ * Rank anything by a single string, with the same ladder the records use.
+ *
+ * The palette's navigation actions are not tasks and sessions: they have no
+ * project and no body text. But "his" should still put "Open history" first,
+ * and duplicating a scoring rule in the component is how two surfaces drift
+ * apart. Sharing the ladder keeps one idea of a better match across the app.
+ */
+export function rankByText<T>(
+  items: readonly T[],
+  query: string,
+  text: (item: T) => string,
+  limit = 8,
+): T[] {
+  const needle = normalizeQuery(query)
+  if (needle.length < MIN_QUERY_LENGTH) return []
+
+  return items
+    .map((item) => ({ item, score: scoreTitle(text(item), needle) }))
+    .filter((scored) => scored.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((scored) => scored.item)
+}

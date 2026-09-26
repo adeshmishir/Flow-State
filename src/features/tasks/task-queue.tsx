@@ -14,7 +14,6 @@ import { TaskRow } from '@/features/tasks/task-row'
 import {
   archiveTask,
   deleteTaskPermanently,
-  getTasks,
   moveTaskBefore,
   restoreTask,
   restoreTaskSnapshot,
@@ -64,10 +63,18 @@ type TaskQueueProps = {
 }
 
 function TaskQueue({ now }: TaskQueueProps) {
-  // Subscribe once for the whole list, then read the same snapshot through the
-  // getter. Calling `getTasks()` directly in render would work but would not
-  // re-render this component when a task changes, which is what `useTasks` is for.
-  useTasks()
+  // One subscription, and the snapshot it hands back is the one everything
+  // below is derived from.
+  //
+  // This used to call `useTasks()` for the re-render and then read `getTasks()`
+  // during render, on the reasoning that the getter's fresh array "cannot be a
+  // useMemo dependency". That reasoning was backwards: `useTasks` returns the
+  // store's own array, whose identity only changes when the store commits, so it
+  // is exactly the dependency a memo wants. Reading past it also broke SSR — the
+  // browser answered with `localStorage` while the server had rendered the
+  // fixture seed, so a reload with a different queue threw a hydration mismatch
+  // and React threw the whole list away and rebuilt it.
+  const tasks = useTasks()
   const log = useSessionLog()
 
   const [filter, setFilter] = useState<QueueFilter>('active')
@@ -77,30 +84,19 @@ function TaskQueue({ now }: TaskQueueProps) {
   const focus = useMemo(() => focusByTask(log), [log])
   const stats = useMemo(() => todayStats(log, now), [log, now])
 
-  // Read straight through on every render, deliberately uncached.
-  //
-  // `getTasks()` hands back a fresh array, so it cannot be a `useMemo` dependency
-  // — a memo here would keep serving the grouping from whenever it last ran, and
-  // because the only honest dependency is the store's snapshot, the cache would
-  // outlive every edit, completion and archive it was supposed to reflect.
-  //
-  // The work is a single pass over a few hundred small objects, and React
-  // re-renders this component exactly when the store changes, so "always
-  // recompute" is both correct and cheap. The alternative — threading the snapshot
-  // through as a dependency — is available if this ever shows up in a profile.
-  const lists = (() => {
+  const lists = useMemo(() => {
     const open: Task[] = []
     const done: Task[] = []
     const archived: Task[] = []
 
-    for (const task of getTasks()) {
+    for (const task of tasks) {
       if (task.archivedAt !== null) archived.push(task)
       else if (task.status === 'done') done.push(task)
       else open.push(task)
     }
 
     return { open, done, archived }
-  })()
+  }, [tasks])
 
   const shown = filter === 'active' ? lists.open : filter === 'done' ? lists.done : lists.archived
 
@@ -111,11 +107,24 @@ function TaskQueue({ now }: TaskQueueProps) {
    * moving the third done task up would swap it with a hidden open task and the
    * row would appear not to move at all. Naming the neighbour instead keeps the
    * store's operation and the on-screen list in agreement on every filter.
+   *
+   * The two directions need different targets, which is the whole subtlety.
+   * `moveTaskBefore` means what it says — land immediately *before* a given task
+   * — so for a move down the neighbour is the wrong thing to aim at: the row is
+   * already immediately before it, and the store helpfully put it straight back
+   * where it started. Every "Move down" was a no-op. Moving down therefore aims
+   * at the item *after* the neighbour, which is the same statement written from
+   * the other side. Moving up already aimed at the neighbour and worked.
    */
   const move = (task: Task, offset: number) => {
-    const neighbour = shown[taskIndex(shown, task.id) + offset]
+    const index = taskIndex(shown, task.id)
+    const neighbour = shown[index + offset]
     if (neighbour === undefined) return
-    moveTaskBefore(task.id, neighbour.id)
+
+    const over = offset < 0 ? neighbour : shown[index + offset + 1]
+    if (over === undefined) return
+
+    moveTaskBefore(task.id, over.id)
   }
 
   const toggleDone = (task: Task) => {
@@ -197,7 +206,7 @@ function TaskQueue({ now }: TaskQueueProps) {
       )}
 
       {filter === 'active' ? (
-        <p className="text-xs text-ink-subtle">
+        <p className="text-xs text-ink-muted">
           {lists.open.length > 0
             ? `${pluralize(lists.open.length, 'task')} open. The top of the list is what Home recommends.`
             : 'Nothing open.'}{' '}
@@ -250,7 +259,7 @@ function EmptyQueue({ filter }: EmptyQueueProps) {
     return (
       <div className="pt-6 border-t border-line-subtle">
         <p className="text-sm text-ink-muted">Nothing finished yet.</p>
-        <p className="mt-1.5 text-xs text-ink-subtle">
+        <p className="mt-1.5 text-xs text-ink-muted">
           Completed tasks collect here, with the time you spent on them.
         </p>
       </div>
@@ -261,7 +270,7 @@ function EmptyQueue({ filter }: EmptyQueueProps) {
     return (
       <div className="pt-6 border-t border-line-subtle">
         <p className="text-sm text-ink-muted">No archived tasks.</p>
-        <p className="mt-1.5 text-xs text-ink-subtle">
+        <p className="mt-1.5 text-xs text-ink-muted">
           Archiving takes something out of the queue without deleting its history.
         </p>
       </div>
@@ -271,7 +280,7 @@ function EmptyQueue({ filter }: EmptyQueueProps) {
   return (
     <div className="pt-6 border-t border-line-subtle">
       <p className="text-sm text-ink-muted">Your queue is empty.</p>
-      <p className="mt-1.5 max-w-reading text-xs text-ink-subtle">
+      <p className="mt-1.5 max-w-reading text-xs text-ink-muted">
         Add the one thing you want to finish next. A queue of one is a plan; a queue of nine is a
         wish list.
       </p>

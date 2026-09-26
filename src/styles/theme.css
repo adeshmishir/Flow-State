@@ -30,6 +30,8 @@
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-line-subtle: var(--line-subtle);
+  --color-line-control: var(--line-control);
+  --color-line-control-hover: var(--line-control-hover);
 
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);

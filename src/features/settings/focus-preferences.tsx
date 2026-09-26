@@ -125,7 +125,7 @@ function FocusPreferences() {
             />
             <span
               aria-hidden="true"
-              className="inset-y-0 right-3 pointer-events-none absolute flex items-center text-2xs text-ink-subtle"
+              className="inset-y-0 right-3 pointer-events-none absolute flex items-center text-2xs text-ink-muted"
             >
               min
             </span>
@@ -148,7 +148,7 @@ function FocusPreferences() {
                   className={
                     active
                       ? 'h-9 px-3 font-medium rounded-md border border-accent bg-accent-soft text-sm text-accent-soft-ink transition-colors duration-150 ease-standard'
-                      : 'h-9 px-3 rounded-md border border-line bg-surface text-sm text-ink-secondary transition-colors duration-150 ease-standard hover:border-line-strong hover:text-ink'
+                      : 'h-9 px-3 rounded-md border border-line-control bg-surface text-sm text-ink-secondary transition-colors duration-150 ease-standard hover:border-line-control-hover hover:text-ink'
                   }
                 >
                   {preset.label}
@@ -158,7 +158,7 @@ function FocusPreferences() {
           </div>
         </div>
 
-        <p className="mt-2 text-2xs text-ink-subtle">
+        <p className="mt-2 text-2xs text-ink-muted">
           Between {GOAL_BOUNDS.min} and {GOAL_BOUNDS.max} minutes.
         </p>
       </fieldset>

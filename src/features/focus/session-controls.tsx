@@ -56,7 +56,7 @@ function SessionControls({
             'focus-visible:outline-focus focus-visible:outline-2 focus-visible:outline-offset-2',
             'active:scale-[0.985] motion-reduce:active:scale-100',
             running
-              ? 'border border-line bg-surface text-ink hover:border-line-strong hover:bg-raised'
+              ? 'border border-line-control bg-surface text-ink hover:border-line-control-hover hover:bg-raised'
               : 'bg-accent text-accent-ink shadow-xs hover:bg-accent-hover active:bg-accent-active',
           )}
         >
@@ -84,7 +84,7 @@ function SessionControls({
           </AnimatePresence>
         </button>
 
-        <p className="text-2xs text-ink-subtle">
+        <p className="text-2xs text-ink-muted">
           <Kbd>Space</Kbd>
           <span className="sm:ml-1.5">{running ? 'to pause' : 'to resume'}</span>
         </p>
@@ -142,7 +142,7 @@ function SecondaryControl({
         'focus-visible:outline-focus focus-visible:outline-2 focus-visible:outline-offset-2',
         active
           ? 'border-accent/40 bg-accent-soft text-accent-soft-ink'
-          : 'border-line bg-surface text-ink-secondary hover:border-line-strong hover:bg-raised hover:text-ink',
+          : 'border-line-control bg-surface text-ink-secondary hover:border-line-control-hover hover:bg-raised hover:text-ink',
       )}
     >
       {icon}

@@ -1,5 +1,6 @@
 'use client'
 
+import { ValueSwap } from '@/components/motion/value-swap'
 import { Eyebrow } from '@/components/ui/eyebrow'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
@@ -50,7 +51,7 @@ function TodaySummary({
       <Eyebrow>Today</Eyebrow>
 
       <p className="tnum mt-3 font-medium tracking-tight text-3xl text-ink">
-        {formatDuration(focusedMinutes)}
+        <ValueSwap value={formatDuration(focusedMinutes)} />
       </p>
       <p className="mt-1 text-xs text-ink-muted">
         {sessionsCompleted === 0 ? 'no blocks yet' : 'in deep work'}
@@ -63,7 +64,7 @@ function TodaySummary({
         className="mt-4"
         aria-label={`${percent}% of today's focus goal`}
       />
-      <p className="mt-2 text-xs text-ink-subtle">
+      <p className="mt-2 text-xs text-ink-muted">
         {met ? (
           <>
             Goal met — {formatDuration(focusedMinutes - goalMinutes)} past {formatDuration(goal)}
@@ -81,7 +82,9 @@ function TodaySummary({
         {rows.map((row) => (
           <div key={row.label} className="gap-4 flex items-baseline justify-between">
             <dt className="text-ink-muted">{row.label}</dt>
-            <dd className="tnum font-medium text-ink">{row.value}</dd>
+            <dd className="tnum font-medium text-ink">
+              <ValueSwap value={row.value} />
+            </dd>
           </div>
         ))}
       </dl>

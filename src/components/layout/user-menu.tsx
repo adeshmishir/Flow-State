@@ -41,7 +41,7 @@ function UserMenu({ variant, className }: UserMenuProps) {
             <button
               type="button"
               className={cn(
-                'rounded-full transition-opacity duration-150 ease-standard hover:opacity-85',
+                'tap-target rounded-full transition-opacity duration-150 ease-standard hover:opacity-85',
                 focusRing,
                 className,
               )}
@@ -64,7 +64,7 @@ function UserMenu({ variant, className }: UserMenuProps) {
             <Avatar initials={mockUser.initials} size="md" />
             <span className="min-w-0 flex-1">
               <span className="font-medium block truncate text-sm text-ink">{mockUser.name}</span>
-              <span className="block truncate text-xs text-ink-subtle">{mockUser.plan}</span>
+              <span className="block truncate text-xs text-ink-muted">{mockUser.plan}</span>
             </span>
             <ChevronsUpDown className="size-3.5 shrink-0 text-ink-subtle" aria-hidden="true" />
           </button>

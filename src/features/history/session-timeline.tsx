@@ -2,7 +2,7 @@
 
 import { FileText } from 'lucide-react'
 
-import { formatDuration, formatTimeOfDay, pluralize } from '@/lib/format'
+import { formatDuration, formatFocused, formatTimeOfDay, pluralize } from '@/lib/format'
 import type { SessionLogEntry } from '@/types/session'
 
 /**
@@ -23,6 +23,8 @@ type SessionTimelineProps = {
   groups: readonly { key: string; dayStart: number; entries: SessionLogEntry[] }[]
 }
 
+const MINUTE_MS = 60_000
+
 function SessionTimeline({ groups }: SessionTimelineProps) {
   return (
     <div className="gap-8 flex flex-col">
@@ -32,14 +34,14 @@ function SessionTimeline({ groups }: SessionTimelineProps) {
         return (
           <section key={group.key} aria-labelledby={`day-${group.key}`}>
             <div className="gap-4 flex items-baseline justify-between">
-              <h3 id={`day-${group.key}`} className="text-xs text-ink-subtle">
+              <h3 id={`day-${group.key}`} className="text-xs text-ink-muted">
                 {new Intl.DateTimeFormat('en-US', {
                   weekday: 'long',
                   day: 'numeric',
                   month: 'long',
                 }).format(new Date(group.dayStart))}
               </h3>
-              <p className="tnum shrink-0 text-xs text-ink-subtle">
+              <p className="tnum shrink-0 text-xs text-ink-muted">
                 {formatDuration(minutes)} · {pluralize(group.entries.length, 'session')}
               </p>
             </div>
@@ -68,17 +70,17 @@ function SessionRow({ entry }: SessionRowProps) {
       <div className="gap-3 sm:gap-5 flex items-start">
         <time
           dateTime={new Date(entry.startedAt).toISOString()}
-          className="tnum w-16 pt-0.5 sm:w-20 shrink-0 text-xs text-ink-subtle"
+          className="tnum w-16 pt-0.5 sm:w-20 shrink-0 text-xs text-ink-muted"
         >
           {formatTimeOfDay(new Date(entry.startedAt))}
         </time>
 
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm text-ink">{entry.taskTitle}</p>
-          <p className="mt-0.5 gap-x-2 flex flex-wrap items-center text-xs text-ink-subtle">
+          <p className="mt-0.5 gap-x-2 flex flex-wrap items-center text-xs text-ink-muted">
             <span className="truncate">{entry.project || 'Inbox'}</span>
             <span aria-hidden="true">·</span>
-            <span className="tnum">{formatDuration(entry.focusedMinutes)} focused</span>
+            <span className="tnum">{formatFocused(entry.focusedMinutes * MINUTE_MS)} focused</span>
             {entry.reason === 'discarded' ? (
               <>
                 <span aria-hidden="true">·</span>

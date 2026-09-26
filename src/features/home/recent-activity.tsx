@@ -54,7 +54,7 @@ function RecentActivity({ entries, now }: RecentActivityProps) {
             No sessions yet. The first one only needs a task and a length — the numbers here build
             themselves from then on.
           </p>
-          <p className="mt-3 text-xs text-ink-subtle">
+          <p className="mt-3 text-xs text-ink-muted">
             <Link
               href="/tasks"
               className="focus-visible:outline-focus rounded-sm underline decoration-line-strong underline-offset-4 transition-colors duration-150 ease-standard hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2"
@@ -84,7 +84,7 @@ function RecentActivity({ entries, now }: RecentActivityProps) {
       <div className="mt-4">
         {groups.map((group) => (
           <section key={group.label} className="mt-6 first:mt-0">
-            <h3 className="text-xs text-ink-subtle">{group.label}</h3>
+            <h3 className="text-xs text-ink-muted">{group.label}</h3>
             <ul>
               {group.entries.map((entry) => (
                 <li
@@ -93,14 +93,14 @@ function RecentActivity({ entries, now }: RecentActivityProps) {
                 >
                   <time
                     dateTime={new Date(entry.startedAt).toISOString()}
-                    className="tnum w-14 sm:w-20 shrink-0 text-xs text-ink-subtle"
+                    className="tnum w-14 sm:w-20 shrink-0 text-xs text-ink-muted"
                   >
                     {formatTimeOfDay(new Date(entry.startedAt))}
                   </time>
 
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-ink">{entry.taskTitle}</p>
-                    <p className="mt-0.5 truncate text-xs text-ink-subtle">
+                    <p className="mt-0.5 truncate text-xs text-ink-muted">
                       {entry.project || 'Inbox'}
                       {entry.notes.trim() === '' ? null : (
                         <>

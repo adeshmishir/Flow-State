@@ -37,3 +37,147 @@
     --normal-border: var(--line);
   }
 }
+
+/*
+ * Overlay motion.
+ * ---------------------------------------------------------------------------
+ * Radix exposes `data-state="open" | "closed"` on every primitive it portals, and
+ * its internal Presence waits for a running CSS *animation* before unmounting.
+ * That is the whole mechanism: an `animation` on the closed state is enough to
+ * get a dismissal transition, with no `forceMount`, no `AnimatePresence` wrapper
+ * and no change to any consumer.
+ *
+ * Entrance stays with Motion where Motion already drives the element (the dialog
+ * panel); these rules cover the dismissal, which Motion's `initial`/`animate`
+ * pair cannot express, plus the primitives that were entrance-only.
+ *
+ * Easing and durations mirror `src/lib/motion.ts` so the two systems agree.
+ */
+@keyframes flowstate-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes flowstate-overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Menus, tooltips and popovers: a 4px rise and a hair of scale. */
+@keyframes flowstate-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes flowstate-popover-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-2px) scale(0.99);
+  }
+}
+
+@keyframes flowstate-dialog-out {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 8px;
+  }
+}
+
+@keyframes flowstate-tooltip-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@layer components {
+  /*
+   * Dialog dismissal.
+   *
+   * The opacity fade has to sit on `dialog-frame`, because that is the node
+   * Radix's Presence watches — put it on the panel and the frame unmounts
+   * before the fade starts. The frame's own `sm:-translate-y-1/2` centring
+   * means it can only ever be an opacity animation.
+   *
+   * The panel gets the lift through the independent `translate` property, which
+   * composes with Motion's inline `transform` instead of replacing it. A
+   * `transform` keyframe here would fight the entrance animation and win.
+   */
+  [data-slot='dialog-frame'] {
+    animation: flowstate-overlay-out 180ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+
+  [data-slot='dialog-frame'][data-state='open'] {
+    animation: none;
+  }
+
+  [data-slot='dialog-frame'][data-state='closed'] > [data-slot='dialog-panel'] {
+    animation: flowstate-dialog-out 180ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+
+  [data-slot='dialog-overlay'] {
+    animation: flowstate-overlay-out 160ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+
+  [data-slot='dialog-overlay'][data-state='open'] {
+    animation-name: flowstate-overlay-in;
+    animation-duration: 160ms;
+    animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+    animation-fill-mode: backwards;
+  }
+
+  [data-slot='dropdown-menu'][data-state='closed'],
+  [data-slot='tooltip-content'][data-state='closed'] {
+    animation: flowstate-popover-out 120ms cubic-bezier(0.4, 0, 1, 1) forwards;
+    transform-origin: var(--radix-dropdown-menu-content-transform-origin, center);
+  }
+
+  [data-slot='dropdown-menu'][data-state='open'] {
+    animation: flowstate-popover-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: var(--radix-dropdown-menu-content-transform-origin, center);
+  }
+
+  [data-slot='tooltip-content'][data-state='open'] {
+    animation: flowstate-tooltip-in 120ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Under reduced motion the elements still need *an* animation present for
+   * Radix Presence to keep them mounted through the frame, but it must not move. */
+  @media (prefers-reduced-motion: reduce) {
+    [data-slot='dialog-frame'],
+    [data-slot='dialog-overlay'],
+    [data-slot='dropdown-menu'],
+    [data-slot='tooltip-content'] {
+      animation-name: flowstate-overlay-out;
+      animation-duration: 1ms;
+    }
+
+    [data-slot='dialog-frame'][data-state='closed'] > [data-slot='dialog-panel'] {
+      animation: none;
+    }
+  }
+}

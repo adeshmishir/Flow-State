@@ -134,7 +134,7 @@ function SessionNotes({ open, notes, description, className }: SessionNotesProps
           <div className="p-4 sm:p-5 rounded-lg border border-line bg-surface text-left">
             {description ? (
               <div className="mb-4 pb-4 border-b border-line">
-                <Eyebrow className="text-ink-subtle">Task</Eyebrow>
+                <Eyebrow className="text-ink-muted">Task</Eyebrow>
                 <p className="mt-1.5 text-sm text-pretty text-ink-muted">{description}</p>
               </div>
             ) : null}
@@ -152,15 +152,15 @@ function SessionNotes({ open, notes, description, className }: SessionNotesProps
               maxLength={2000}
               placeholder="What are you about to do? What did you just decide?"
               className={cn(
-                'mt-2.5 p-3 w-full resize-y rounded-md border border-line bg-sunken',
-                'text-sm text-ink placeholder:text-ink-subtle',
+                'mt-2.5 p-3 w-full resize-y rounded-md border border-line-control bg-sunken',
+                'text-sm text-ink placeholder:text-ink-muted',
                 'transition-[border-color,box-shadow] duration-150 ease-standard',
                 'focus-visible:shadow-focus focus-visible:border-accent focus-visible:outline-none',
               )}
             />
 
             <div className="mt-2 gap-3 flex items-center justify-between">
-              <p className="text-2xs text-ink-subtle">
+              <p className="text-2xs text-ink-muted">
                 Saved with the session. Nothing leaves this device.
               </p>
 
@@ -169,7 +169,7 @@ function SessionNotes({ open, notes, description, className }: SessionNotesProps
                 className={cn(
                   'tnum shrink-0 text-2xs transition-opacity duration-150 ease-standard',
                   saveState === 'idle' ? 'opacity-0' : 'opacity-100',
-                  saveState === 'pending' ? 'text-ink-subtle' : 'text-success',
+                  saveState === 'pending' ? 'text-ink-muted' : 'text-success',
                 )}
               >
                 {saveState === 'pending' ? 'Saving…' : 'Saved'}

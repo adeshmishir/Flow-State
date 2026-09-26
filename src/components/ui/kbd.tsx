@@ -19,7 +19,7 @@ function Kbd({ children, className }: KbdProps) {
       aria-hidden="true"
       className={cn(
         'h-5 min-w-5 px-1.5 hidden items-center justify-center rounded-xs border border-line bg-surface',
-        'sm:inline-flex font-mono text-2xs text-ink-subtle',
+        'sm:inline-flex font-mono text-2xs text-ink-muted',
         className,
       )}
     >

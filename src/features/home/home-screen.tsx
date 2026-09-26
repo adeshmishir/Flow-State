@@ -67,7 +67,7 @@ function HomeScreen({ now }: { now: number }) {
           />
 
           {stats.focusedMinutes === 0 && log.length === 0 ? (
-            <p className="mt-5 text-xs text-ink-subtle">
+            <p className="mt-5 text-xs text-ink-muted">
               <Link
                 href="/history"
                 className="focus-visible:outline-focus gap-1 inline-flex items-center rounded-sm underline decoration-line-strong underline-offset-4 transition-colors duration-150 ease-standard hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2"

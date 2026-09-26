@@ -19,9 +19,9 @@ type SegmentedRadioProps<T extends string> = {
 }
 
 const segmentClasses = [
-  'flex h-9 cursor-pointer items-center justify-center rounded-md border border-line bg-surface',
+  'flex h-9 cursor-pointer items-center justify-center rounded-md border border-line-control bg-surface',
   'text-center text-sm text-ink-secondary transition-colors duration-150 ease-standard',
-  'hover:border-line-strong hover:text-ink',
+  'hover:border-line-control-hover hover:text-ink',
   'peer-checked:border-accent peer-checked:bg-accent-soft peer-checked:font-medium peer-checked:text-accent-soft-ink',
   'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus',
 ].join(' ')
@@ -64,7 +64,7 @@ function SegmentedRadio<T extends string>({
           </label>
         ))}
       </div>
-      {hint ? <p className="text-xs text-ink-subtle">{hint}</p> : null}
+      {hint ? <p className="text-xs text-ink-muted">{hint}</p> : null}
     </fieldset>
   )
 }

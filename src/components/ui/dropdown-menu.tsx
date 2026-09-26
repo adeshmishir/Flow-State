@@ -23,6 +23,7 @@ function DropdownMenuContent({
         sideOffset={sideOffset}
         align={align}
         collisionPadding={12}
+        data-slot="dropdown-menu"
         className={cn(
           'min-w-56 p-1 z-50 overflow-hidden rounded-lg border border-line bg-overlay shadow-lg',
           className,

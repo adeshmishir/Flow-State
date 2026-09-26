@@ -1,12 +1,15 @@
 'use client'
 
 import { Check, Clock3, Play, RotateCcw, Trash2 } from 'lucide-react'
+import { motion } from 'motion/react'
 import Link from 'next/link'
 
 import { IconButton } from '@/components/ui/icon-button'
 import { Tooltip } from '@/components/ui/tooltip'
+import { focusHrefForTask } from '@/features/session/focus-draft'
 import { TaskMenu } from '@/features/tasks/task-menu'
 import { formatDuration, formatRelativeDay } from '@/lib/format'
+import { EASE_OUT } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import type { Task } from '@/types/session'
 
@@ -78,14 +81,25 @@ function TaskRow({
           onClick={() => onToggleDone(task)}
           aria-pressed={done}
           className={cn(
-            'focus-visible:outline-focus size-5 grid shrink-0 place-items-center rounded-full border transition-colors duration-150 ease-standard',
+            'tap-target-lg focus-visible:outline-focus size-5 grid shrink-0 place-items-center rounded-full border',
+            'transition-[background-color,border-color,transform] duration-150 ease-standard',
+            'active:scale-90 motion-reduce:active:scale-100',
             'focus-visible:outline-2 focus-visible:outline-offset-2',
             done
               ? 'text-white border-success bg-success'
-              : 'border-line-strong hover:border-accent hover:bg-accent-soft',
+              : 'border-line-control hover:border-accent hover:bg-accent-soft',
           )}
         >
-          {done ? <Check aria-hidden="true" className="size-3" strokeWidth={3} /> : null}
+          {done ? (
+            <motion.span
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.18, ease: EASE_OUT }}
+              className="grid place-items-center"
+            >
+              <Check aria-hidden="true" className="size-3" strokeWidth={3} />
+            </motion.span>
+          ) : null}
           <span className="sr-only">
             {done ? `Reopen ${task.title}` : `Mark ${task.title} as done`}
           </span>
@@ -102,7 +116,7 @@ function TaskRow({
           {task.title}
         </p>
 
-        <p className="mt-0.5 gap-x-2 flex flex-wrap items-center text-xs text-ink-subtle">
+        <p className="mt-0.5 gap-x-2 flex flex-wrap items-center text-xs text-ink-muted">
           <span className="truncate">{task.project || 'Inbox'}</span>
           {task.estimatedMinutes !== null ? (
             <>
@@ -156,17 +170,15 @@ function TaskRow({
               {done ? (
                 <span
                   aria-hidden="true"
-                  className="size-8 grid place-items-center rounded-md text-ink-subtle opacity-40"
+                  className="tap-target size-8 grid place-items-center rounded-md text-ink-subtle opacity-40"
                 >
                   <Play className="size-4" />
                 </span>
               ) : (
                 <Link
-                  href={`/focus?task=${encodeURIComponent(task.id)}&length=${
-                    task.estimatedMinutes ?? 50
-                  }`}
+                  href={focusHrefForTask(task, task.estimatedMinutes ?? 50)}
                   aria-label={`Start a session on ${task.title}`}
-                  className="focus-visible:outline-focus size-8 grid place-items-center rounded-md border border-line text-ink-muted transition-colors duration-150 ease-standard hover:border-accent hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2"
+                  className="tap-target focus-visible:outline-focus size-8 grid place-items-center rounded-md border border-line-control text-ink-muted transition-[color,border-color,background-color,transform] duration-150 ease-standard hover:border-accent hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-95 motion-reduce:active:scale-100"
                 >
                   <Play aria-hidden="true" className="size-4" fill="currentColor" />
                 </Link>

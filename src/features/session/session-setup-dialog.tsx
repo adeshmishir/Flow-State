@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label'
 import { SegmentedRadio } from '@/components/ui/segmented-radio'
 import { toast } from '@/components/ui/toast'
 import { usePreferences } from '@/features/preferences/preferences-store'
+import { draftFromTask, draftToQuery } from '@/features/session/focus-draft'
 import { TaskFormFields } from '@/features/tasks/task-form-fields'
 import { taskFormSchema, toNewTask } from '@/features/tasks/task-form-schema'
 import { NEW_TASK_VALUE, TaskSelector } from '@/features/tasks/task-selector'
@@ -30,7 +31,6 @@ import {
   toDraftMinutes,
   toSessionLength,
 } from '@/features/session/session-form-schema'
-import type { SessionDraft } from '@/types/session'
 
 /**
  * Session setup.
@@ -69,12 +69,6 @@ type SessionSetupDialogProps = {
 }
 
 /** Drafts travel in the URL, so the room is server-rendered from them. */
-export function draftToQuery(draft: SessionDraft): string {
-  const query = new URLSearchParams({ task: draft.taskTitle, minutes: String(draft.minutes) })
-  if (draft.taskId) query.set('id', draft.taskId)
-  if (draft.project) query.set('project', draft.project)
-  return `?${query.toString()}`
-}
 
 function SessionSetupDialog({ open, onOpenChange, initialTaskId }: SessionSetupDialogProps) {
   const router = useRouter()
@@ -157,13 +151,7 @@ function SessionSetupDialog({ open, onOpenChange, initialTaskId }: SessionSetupD
 
     if (!task) return
 
-    const draft: SessionDraft = {
-      taskId: task.id,
-      taskTitle: task.title,
-      project: task.project,
-      description: task.description ?? '',
-      minutes: toDraftMinutes(getValues('length')),
-    }
+    const draft = draftFromTask(task, toDraftMinutes(getValues('length')))
 
     onOpenChange(false)
 
